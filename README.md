@@ -5,6 +5,7 @@ nathiral
 theSpuu
 
 Link to the base game: https://ihtasham42.github.io/progress-knight/
+Link to CameronGott's extended version: https://camerongott.github.io/progress-knight/
 
 # dev-diary  
 
