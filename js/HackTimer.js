@@ -1,7 +1,8 @@
 (function (workerScript) {
-	if (!/MSIE 10/i.test (navigator.userAgent)) {
+	if (!/MSIE 10/i.test(navigator.userAgent)) {
 		try {
-			var blob = new Blob (["\
+			var blob = new Blob([
+				"\
 var fakeIdToId = {};\
 onmessage = function (event) {\
 	var data = event.data,\
@@ -39,7 +40,8 @@ onmessage = function (event) {\
 			break;\
 	}\
 }\
-"]);
+"
+			]);
 			// Obtain a blob URL reference to our worker 'file'.
 			workerScript = window.URL.createObjectURL(blob);
 		} catch (error) {
@@ -49,29 +51,29 @@ onmessage = function (event) {\
 	var worker,
 		fakeIdToCallback = {},
 		lastFakeId = 0,
-		maxFakeId = 0x7FFFFFFF, // 2 ^ 31 - 1, 31 bit, positive values of signed 32 bit integer
-		logPrefix = 'HackTimer.js by turuslan: ';
-	if (typeof (Worker) !== 'undefined') {
-		function getFakeId () {
+		maxFakeId = 0x7fffffff, // 2 ^ 31 - 1, 31 bit, positive values of signed 32 bit integer
+		logPrefix = "HackTimer.js by turuslan: ";
+	if (typeof Worker !== "undefined") {
+		function getFakeId() {
 			do {
 				if (lastFakeId == maxFakeId) {
 					lastFakeId = 0;
 				} else {
-					lastFakeId ++;
+					lastFakeId++;
 				}
-			} while (fakeIdToCallback.hasOwnProperty (lastFakeId));
+			} while (fakeIdToCallback.hasOwnProperty(lastFakeId));
 			return lastFakeId;
 		}
 		try {
-			worker = new Worker (workerScript);
+			worker = new Worker(workerScript);
 			window.setInterval = function (callback, time /* , parameters */) {
-				var fakeId = getFakeId ();
+				var fakeId = getFakeId();
 				fakeIdToCallback[fakeId] = {
 					callback: callback,
 					parameters: Array.prototype.slice.call(arguments, 2)
 				};
-				worker.postMessage ({
-					name: 'setInterval',
+				worker.postMessage({
+					name: "setInterval",
 					fakeId: fakeId,
 					time: time
 				});
@@ -80,21 +82,21 @@ onmessage = function (event) {\
 			window.clearInterval = function (fakeId) {
 				if (fakeIdToCallback.hasOwnProperty(fakeId)) {
 					delete fakeIdToCallback[fakeId];
-					worker.postMessage ({
-						name: 'clearInterval',
+					worker.postMessage({
+						name: "clearInterval",
 						fakeId: fakeId
 					});
 				}
 			};
 			window.setTimeout = function (callback, time /* , parameters */) {
-				var fakeId = getFakeId ();
+				var fakeId = getFakeId();
 				fakeIdToCallback[fakeId] = {
 					callback: callback,
 					parameters: Array.prototype.slice.call(arguments, 2),
 					isTimeout: true
 				};
-				worker.postMessage ({
-					name: 'setTimeout',
+				worker.postMessage({
+					name: "setTimeout",
 					fakeId: fakeId,
 					time: time
 				});
@@ -103,8 +105,8 @@ onmessage = function (event) {\
 			window.clearTimeout = function (fakeId) {
 				if (fakeIdToCallback.hasOwnProperty(fakeId)) {
 					delete fakeIdToCallback[fakeId];
-					worker.postMessage ({
-						name: 'clearTimeout',
+					worker.postMessage({
+						name: "clearTimeout",
 						fakeId: fakeId
 					});
 				}
@@ -119,29 +121,38 @@ onmessage = function (event) {\
 					request = fakeIdToCallback[fakeId];
 					callback = request.callback;
 					parameters = request.parameters;
-					if (request.hasOwnProperty ('isTimeout') && request.isTimeout) {
+					if (
+						request.hasOwnProperty("isTimeout") &&
+						request.isTimeout
+					) {
 						delete fakeIdToCallback[fakeId];
 					}
 				}
-				if (typeof (callback) === 'string') {
+				if (typeof callback === "string") {
 					try {
-						callback = new Function (callback);
+						callback = new Function(callback);
 					} catch (error) {
-						console.log (logPrefix + 'Error parsing callback code string: ', error);
+						console.log(
+							logPrefix + "Error parsing callback code string: ",
+							error
+						);
 					}
 				}
-				if (typeof (callback) === 'function') {
-					callback.apply (window, parameters);
+				if (typeof callback === "function") {
+					callback.apply(window, parameters);
 				}
 			};
 			worker.onerror = function (event) {
-				console.log (event);
+				console.log(event);
 			};
 		} catch (error) {
-			console.log (logPrefix + 'Initialisation failed');
-			console.error (error);
+			console.log(logPrefix + "Initialisation failed");
+			console.error(error);
 		}
 	} else {
-		console.log (logPrefix + 'Initialisation failed - HTML5 Web Worker is not supported');
+		console.log(
+			logPrefix +
+				"Initialisation failed - HTML5 Web Worker is not supported"
+		);
 	}
-}) ('HackTimerWorker.js');
+})("HackTimerWorker.js");
