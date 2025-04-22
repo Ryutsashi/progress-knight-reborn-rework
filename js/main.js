@@ -871,7 +871,7 @@ function addMultipliers() {
 	}
 }
 
-function setCustomEffects() {
+function initCustomEffects() {
 	var bargaining = gameData.taskData["Bargaining"];
 	bargaining.getEffect = function () {
 		var multiplier = 1 - getBaseLog(7, bargaining.level + 1) / 10;
@@ -1003,44 +1003,44 @@ function goBankrupt() {
 	gameData.currentMisc = [];
 }
 
-function setTab(element, selectedTab) {
+function switchSelectedTab(newSelectedTab, oldSelectedTab) {
 	var tabs = Array.prototype.slice.call(
 		document.getElementsByClassName("tab")
 	);
 	tabs.forEach(function (tab) {
 		tab.style.display = "none";
 	});
-	document.getElementById(selectedTab).style.display = "block";
+	document.getElementById(oldSelectedTab).style.display = "block";
 
 	var tabButtons = document.getElementsByClassName("tabButton");
 	for (tabButton of tabButtons) {
 		tabButton.classList.remove("w3-blue-gray");
 	}
-	element.classList.add("w3-blue-gray");
+	newSelectedTab.classList.add("w3-blue-gray");
 }
 
-function setPause() {
+function togglePause() {
 	gameData.paused = !gameData.paused;
 	updateUI();
 }
 
-function setTimeWarping() {
+function toggleTimeWarping() {
 	gameData.timeWarpingEnabled = !gameData.timeWarpingEnabled;
 }
 
-function setTask(taskName) {
+function setActiveTask(taskName) {
 	var task = gameData.taskData[taskName];
 	task instanceof Job
 		? (gameData.currentJob = task)
 		: (gameData.currentSkill = task);
 }
 
-function setProperty(propertyName) {
+function setActiveProperty(propertyName) {
 	var property = gameData.itemData[propertyName];
 	gameData.currentProperty = property;
 }
 
-function setMisc(miscName) {
+function toggleActiveMisc(miscName) {
 	var misc = gameData.itemData[miscName];
 	if (gameData.currentMisc.includes(misc)) {
 		for (i = 0; i < gameData.currentMisc.length; i++) {
@@ -1105,16 +1105,16 @@ function createRow(templates, name, categoryName, categoryType) {
 	row.id = "row " + name;
 	if (categoryType != itemCategories) {
 		row.getElementsByClassName("progressBar")[0].onclick = function () {
-			setTask(name);
+			setActiveTask(name);
 		};
 	} else {
 		row.getElementsByClassName("button")[0].onclick =
 			categoryName == "Properties"
 				? function () {
-						setProperty(name);
+						setActiveProperty(name);
 				  }
 				: function () {
-						setMisc(name);
+						toggleActiveMisc(name);
 				  };
 	}
 
@@ -1748,7 +1748,7 @@ function getElementsByClass(className) {
 	return elements;
 }
 
-function setLightDarkMode() {
+function toggleLightDarkMode() {
 	var body = document.getElementById("body");
 	body.classList.contains("dark")
 		? body.classList.remove("dark")
@@ -1782,7 +1782,7 @@ function rebirthTwo() {
 }
 
 function rebirthReset() {
-	setTab(jobTabButton, "jobs");
+	switchSelectedTab(jobTabButton, "jobs");
 
 	gameData.coins = 0;
 	gameData.days = 365 * 14;
@@ -1945,7 +1945,7 @@ function loadSkipSkillsAndDarkMode() {
 			.getElementsByClassName("checkbox")[0].checked = true;
 	}
 
-	if (!gameData.darkMode) setLightDarkMode();
+	if (!gameData.darkMode) toggleLightDarkMode();
 }
 
 function saveGameData() {
@@ -2021,7 +2021,7 @@ function exportGameData() {
 	importExportBox.value = window.btoa(JSON.stringify(gameData));
 }
 
-function uploadGameData() {
+function loadGameDataFromFile() {
 	var input = document.getElementById("uploadSaveInput");
 	if (input.files.length === 0) {
 		alert("Please select a file to upload");
@@ -2647,10 +2647,10 @@ for (key in gameData.requirements) {
 loadGameData();
 bindObjectFunctionContexts();
 registerEventListeners();
-setCustomEffects();
+initCustomEffects();
 addMultipliers();
 
-setTab(jobTabButton, "jobs");
+switchSelectedTab(jobTabButton, "jobs");
 
 update();
 setInterval(update, 1000 / updateSpeed);
