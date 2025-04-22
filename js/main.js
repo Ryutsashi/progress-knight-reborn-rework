@@ -1,3 +1,19 @@
+// initialization
+document.addEventListener("DOMContentLoaded", () => {
+	loadGameData();
+	bindObjectFunctionContexts();
+	registerEventListeners();
+	initCustomEffects();
+	addMultipliers();
+	
+	switchSelectedTab(jobTabButton, "jobs");
+	
+	update();
+	setInterval(update, 1000 / updateSpeed);
+	setInterval(saveGameData, 6000);
+	setInterval(setSkillWithLowestMaxXp, 1000);
+});
+
 var gameData = {
 	taskData: {},
 	itemData: {},
@@ -2643,16 +2659,3 @@ for (key in gameData.requirements) {
 	var requirement = gameData.requirements[key];
 	tempData["requirements"][key] = requirement;
 }
-
-loadGameData();
-bindObjectFunctionContexts();
-registerEventListeners();
-initCustomEffects();
-addMultipliers();
-
-switchSelectedTab(jobTabButton, "jobs");
-
-update();
-setInterval(update, 1000 / updateSpeed);
-setInterval(saveGameData, 6000);
-setInterval(setSkillWithLowestMaxXp, 1000);
