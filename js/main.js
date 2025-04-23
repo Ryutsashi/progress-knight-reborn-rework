@@ -70,7 +70,11 @@ if (devModeFastProgress == 1) {
 	baseEffect = 100;
 }
 
-const enableVerboseLogging = 0;
+const enableVerboseLogging = false;
+
+function ifVerboseLoggingSay(messageParts/*...arguments*/) {
+	if (enableVerboseLogging) console.log(...arguments);
+}
 
 const permanentUnlocks = [
 	"Scheduling",
@@ -2024,7 +2028,7 @@ function update() {
 
 function resetGameData() {
 	//author: theSpuu
-	var result = confirm("Are you sure you want to reset your game?");
+	var result = confirm("Are you sure you want to erase all game progress? This cannot be undone.");
 	if (result) {
 		localStorage.clear();
 		location.reload();
@@ -2047,7 +2051,7 @@ function exportGameData() {
 function loadGameDataFromFile() {
 	var input = document.getElementById("uploadSaveInput");
 	if (input.files.length === 0) {
-		alert("Please select a file to upload");
+		alert("No file selected. Please select a file to upload");
 		return;
 	}
 	var file = input.files[0];

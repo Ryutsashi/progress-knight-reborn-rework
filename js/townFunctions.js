@@ -63,22 +63,19 @@ function updateRawTownIncome() {
  *       called right before gameData is saved to localStorage.
  */
 function saveTownState() {
-	if (enableVerboseLogging == 1) console.log("saving town state...");
+	ifVerboseLoggingSay("saving town state...");
 
 	for (building in o_townBuildingsContainer) {
-		if (enableVerboseLogging == 1) console.log("key: " + building);
+		ifVerboseLoggingSay("key: ", building);
 		var o_building = o_townBuildingsContainer[building];
-		if (enableVerboseLogging == 1) console.log("value: " + o_building);
+		ifVerboseLoggingSay("value: ", o_building);
 		var saveObject = {
 			name: o_building.name,
 			count: o_building.count,
 			costOfNextBuilding: o_building.costOfNextBuilding
 		};
 		if (saveObject !== undefined) {
-			if (enableVerboseLogging == 1)
-				console.log(
-					"This is the save object we created: " + saveObject
-				);
+			ifVerboseLoggingSay("This is the save object we created: ", saveObject);
 			gameData.townData[saveObject.name] = saveObject;
 		}
 	}
@@ -117,23 +114,13 @@ function testSuccessOfTownDestruction() {
 		var o_building = o_townBuildingsContainer[building];
 		if (o_building.name in gameData.townData) {
 			var savedBuilding = gameData.townData[o_building.name];
-			if (enableVerboseLogging == 1) {
-				console.log(
-					`Type of Saved Count: ${typeof savedBuilding.count}`
-				);
-				console.log(
-					`${o_building.name} Saved count: ${savedBuilding.count}`
-				);
-				console.log(
-					`${o_building.name} Saved cost: ${savedBuilding.costOfNextBuilding}`
-				);
-				console.log(
-					`${o_building.name} Working count: ${o_building.count}`
-				);
-				console.log(
-					`${o_building.name} Working cost: ${o_building.costOfNextBuilding}`
-				);
-			}
+			ifVerboseLoggingSay(
+				`Type of Saved Count: ${typeof savedBuilding.count}\n`
+				`${o_building.name} Saved count: ${savedBuilding.count}\n`
+				`${o_building.name} Saved cost: ${savedBuilding.costOfNextBuilding}\n`
+				`${o_building.name} Working count: ${o_building.count}\n`
+				`${o_building.name} Working cost: ${o_building.costOfNextBuilding}`
+			);
 			savedBuilding.count = o_building.count = 0;
 		}
 	}
@@ -152,18 +139,18 @@ setInterval(regulateGrainMarkets, 15000);
 //Updates the Town page "Idle Citizens" label with the new number of idle citizens
 function updateIdleCitizens() {
 	elementToUpdate = document.querySelector("#idleCitizensCounter");
-	console.log(elementToUpdate);
-	console.log(`Current number of idle citizens: ${gameData.idleCitizens}`);
-	console.log(`Current number of total citizens: ${gameData.totalCitizens}`);
-	console.log(
+	ifVerboseLoggingSay(
+		elementToUpdate,
+		`Current number of idle citizens: ${gameData.idleCitizens}\n`,
+		`Current number of total citizens: ${gameData.totalCitizens}\n`,
 		`Current number of assigned citizens: ${gameData.assignedCitizens}`
 	);
 
 	gameData.idleCitizens = gameData.totalCitizens - gameData.assignedCitizens;
-
-	console.log(`New number of idle citizens: ${gameData.idleCitizens}`);
-	console.log(`New number of total citizens: ${gameData.totalCitizens}`);
-	console.log(
+	
+	ifVerboseLoggingSay(
+		`New number of idle citizens: ${gameData.idleCitizens}\n`,
+		`New number of total citizens: ${gameData.totalCitizens}\n`,
 		`New number of assigned citizens: ${gameData.assignedCitizens}`
 	);
 
