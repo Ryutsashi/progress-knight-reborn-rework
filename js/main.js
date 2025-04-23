@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 var gameData = {
+	version: "0.4.1",
 	taskData: {},
 	itemData: {},
 	townData: {},
@@ -1931,6 +1932,7 @@ function replaceSaveDict(dict, saveDict) {
 	}
 }
 
+// TODO: remove and update the data when interacting with the elements themselves rather than doing it here on game save
 function saveSkipSkillsAndDarkMode() {
 	gameData.autoPromote = autoPromoteElement.checked;
 	gameData.autoLearn = autoLearnElement.checked;
@@ -1974,13 +1976,18 @@ function loadGameData() {
 	var gameDataSave = JSON.parse(localStorage.getItem("gameDataSave"));
 
 	if (gameDataSave !== null) {
-		replaceSaveDict(gameData, gameDataSave);
-		replaceSaveDict(gameData.requirements, gameDataSave.requirements);
-		replaceSaveDict(gameData.taskData, gameDataSave.taskData);
-		replaceSaveDict(gameData.itemData, gameDataSave.itemData);
-		//replaceSaveDict(gameData.townData, gameDataSave.townData);
+		let data = applyVersionMigrationsToData(gameDataSave);
+		if (data == null) {
+			console.error("Error loading game data");
+			return;
+		}
+		replaceSaveDict(gameData, data);
+		replaceSaveDict(gameData.requirements, data.requirements);
+		replaceSaveDict(gameData.taskData, data.taskData);
+		replaceSaveDict(gameData.itemData, data.itemData);
+		//replaceSaveDict(gameData.townData, data.townData);
 
-		gameData = gameDataSave;
+		gameData = data;
 		loadSkipSkillsAndDarkMode();
 	}
 
