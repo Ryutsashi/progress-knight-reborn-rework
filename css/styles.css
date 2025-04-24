@@ -160,3 +160,13 @@ button:focus {
 .townTab h4 {
 	text-align: center;
 }
+
+.net-income {
+	color: #09a0e6;
+}
+.positive-income-sign {
+	color: green;
+}
+.negative-income-sign {
+	color: red;
+}

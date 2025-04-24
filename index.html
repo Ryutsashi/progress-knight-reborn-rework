@@ -32,7 +32,7 @@
                 <div class="" style="font-size: large">Age <span id="ageDisplay">14</span> Day <span id="dayDisplay">0</span></div>
                 <div class="sidebar-element" style="color: gray">Lifespan: <span id="lifespanDisplay">70</span> years</div>
                 
-                <button id="pauseButton" class="w3-button button sidebar-element" onClick="setPause()">Pause</button>
+                <button id="pauseButton" class="w3-button button sidebar-element" onClick="togglePause()">Pause</button>
 
                 <span id="automation" class="inline" style="margin-left: 8px">
                     <span>
@@ -55,11 +55,15 @@
                 <div style="color: gray">Balance (in coins)</div>
 
                 <ul class="sidebar-element" style="padding-left: 20px;">
-                    <li><span style="color: rgb(9, 160, 230)">Net/day: </span ><b id="signDisplay"></b><span id="netDisplay">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                        <span></span>
+                    <li><span class="net-income">Net/day: 
+                        <b class="positive-income-sign">+</b>
+                        <b class="negative-income-sign">-</b>
+                        <span id="netDisplay">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
                     </span></li>
                     <li><span style="color: green">Income/day: </span><span id="incomeDisplay">
                         <span></span>
@@ -448,6 +452,7 @@
 <script type="text/javascript" src="js/updateTooltip.js"></script>
 <script type="text/javascript" src="js/backwardsCompatibility.js"></script>
 <script type="text/javascript" src="js/data.js"></script>
+<script type="text/javascript" src="js/saveLoad.js"></script>
 
 <script type="text/javascript" src="js/main.js"></script>
 

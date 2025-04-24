@@ -74,7 +74,7 @@ function ifVerboseLoggingSay(messageParts /*...arguments*/) {
 	if (enableVerboseLogging) console.log(...arguments);
 }
 
-const units = ["", "k", "M", "B", "T", "q", "Q", "Sx", "Sp", "Oc"];
+const unitSuffixes = ["", "k", "M", "B", "T", "q", "Q", "Sx", "Sp", "Oc"];
 
 const jobTabButton = document.getElementById("jobTabButton");
 
@@ -340,17 +340,13 @@ function goBankrupt() {
 }
 
 function switchSelectedTab(newSelectedTab, oldSelectedTab) {
-	var tabs = Array.prototype.slice.call(
-		document.getElementsByClassName("tab")
-	);
-	tabs.forEach(function (tab) {
-		tab.style.display = "none";
-	});
+	let tabs = Array.from(document.querySelectorAll(".tab"));
+	tabs.forEach(tab => tab.style.display = "none");
 	document.getElementById(oldSelectedTab).style.display = "block";
 
-	var tabButtons = document.getElementsByClassName("tabButton");
-	for (tabButton of tabButtons) {
-		tabButton.classList.remove("w3-blue-gray");
+	let tabButtons = document.querySelectorAll(".tabButton");
+	for (let tab of tabButtons) {
+		tab.classList.remove("w3-blue-gray");
 	}
 	newSelectedTab.classList.add("w3-blue-gray");
 }
@@ -365,19 +361,18 @@ function toggleTimeWarping() {
 }
 
 function setActiveTask(taskName) {
-	var task = gameData.taskData[taskName];
+	let task = gameData.taskData[taskName];
 	task instanceof Job
 		? (gameData.currentJob = task)
 		: (gameData.currentSkill = task);
 }
 
 function setActiveProperty(propertyName) {
-	var property = gameData.itemData[propertyName];
-	gameData.currentProperty = property;
+	gameData.currentProperty = gameData.itemData[propertyName];
 }
 
 function toggleActiveMisc(miscName) {
-	var misc = gameData.itemData[miscName];
+	let misc = gameData.itemData[miscName];
 	if (gameData.currentMisc.includes(misc)) {
 		for (i = 0; i < gameData.currentMisc.length; i++) {
 			if (gameData.currentMisc[i] == misc) {
@@ -390,10 +385,7 @@ function toggleActiveMisc(miscName) {
 }
 
 function createData(data, baseData) {
-	for (key in baseData) {
-		var entity = baseData[key];
-		createEntity(data, entity);
-	}
+	Object.values(baseData).forEach(entity => createEntity(data, entity));
 }
 
 function createEntity(data, entity) {
@@ -408,8 +400,8 @@ function createEntity(data, entity) {
 }
 
 function createRequiredRow(categoryName) {
-	var requiredRow = document
-		.getElementsByClassName("requiredRowTemplate")[0]
+	let requiredRow = document
+		.querySelector(".requiredRowTemplate")
 		.content.firstElementChild.cloneNode(true);
 	requiredRow.classList.add("requiredRow");
 	requiredRow.classList.add(removeSpaces(categoryName));
@@ -418,12 +410,13 @@ function createRequiredRow(categoryName) {
 }
 
 function createHeaderRow(templates, categoryType, categoryName) {
-	var headerRow =
-		templates.headerRow.content.firstElementChild.cloneNode(true);
-	headerRow.getElementsByClassName("category")[0].textContent = categoryName;
+	let headerRow = templates.headerRow.content.firstElementChild.cloneNode(true);
+	headerRow.querySelector(".category").textContent = categoryName;
 	if (categoryType != itemCategories) {
-		headerRow.getElementsByClassName("valueType")[0].textContent =
-			categoryType == jobCategories ? "Income/day" : "Effect";
+		headerRow.querySelector(".valueType").textContent =
+			categoryType == jobCategories
+				? "Income/day"
+				: "Effect";
 	}
 
 	headerRow.style.backgroundColor = headerRowColors[categoryName];
@@ -434,8 +427,9 @@ function createHeaderRow(templates, categoryType, categoryName) {
 	return headerRow;
 }
 
+
 function createRow(templates, name, categoryName, categoryType) {
-	var row = templates.row.content.firstElementChild.cloneNode(true);
+	let row = templates.row.content.firstElementChild.cloneNode(true);
 	row.getElementsByClassName("name")[0].textContent = name;
 	row.getElementsByClassName("tooltipText")[0].textContent = tooltips[name];
 	/* TODO: uncomment once data is restructured
@@ -452,64 +446,49 @@ function createRow(templates, name, categoryName, categoryType) {
 	*/
 	row.id = "row " + name;
 	if (categoryType != itemCategories) {
-		row.getElementsByClassName("progressBar")[0].onclick = function () {
-			setActiveTask(name);
-		};
+		row.getElementsByClassName("progressBar")[0].onclick = () => setActiveTask(name);
 	} else {
 		row.getElementsByClassName("button")[0].onclick =
 			categoryName == "Properties"
-				? function () {
-						setActiveProperty(name);
-				  }
-				: function () {
-						toggleActiveMisc(name);
-				  };
+				? () => setActiveProperty(name)
+				: () => toggleActiveMisc(name);
 	}
 
 	return row;
 }
 
 function createAllRows(categoryType, tableId) {
-	var templates = {
-		headerRow: document.getElementsByClassName(
+	let templates = {
+		headerRow: document.querySelector(
 			categoryType == itemCategories
-				? "headerRowItemTemplate"
-				: "headerRowTaskTemplate"
-		)[0],
-		row: document.getElementsByClassName(
+				? ".headerRowItemTemplate"
+				: ".headerRowTaskTemplate"
+		),
+		row: document.querySelector(
 			categoryType == itemCategories
-				? "rowItemTemplate"
-				: "rowTaskTemplate"
-		)[0]
+				? ".rowItemTemplate"
+				: ".rowTaskTemplate"
+		)
 	};
 
-	var table = document.getElementById(tableId);
+	let table = document.getElementById(tableId);
 
-	for (categoryName in categoryType) {
-		var headerRow = createHeaderRow(templates, categoryType, categoryName);
-		table.appendChild(headerRow);
+	for (let categoryName in categoryType) {
+		table.appendChild(createHeaderRow(templates, categoryType, categoryName));
 
-		var category = categoryType[categoryName];
-		category.forEach(function (name) {
-			var row = createRow(templates, name, categoryName, categoryType);
-			table.appendChild(row);
-		});
+		let categories = categoryType[categoryName];
+		categories.forEach(name => table.appendChild(createRow(templates, name, categoryName, categoryType)));
 
-		var requiredRow = createRequiredRow(categoryName);
-		table.append(requiredRow);
+		table.append(createRequiredRow(categoryName));
 	}
 }
 
 function updateQuickTaskDisplay(taskType) {
-	var currentTask =
-		taskType == "job" ? gameData.currentJob : gameData.currentSkill;
-	var quickTaskDisplayElement = document.getElementById("quickTaskDisplay");
-	var progressBar =
-		quickTaskDisplayElement.getElementsByClassName(taskType)[0];
-	progressBar.getElementsByClassName("name")[0].textContent =
-		currentTask.name + " lvl " + currentTask.level;
-	progressBar.getElementsByClassName("progressFill")[0].style.width =
-		(currentTask.xp / currentTask.getMaxXp()) * 100 + "%";
+	let currentTask = taskType == "job" ? gameData.currentJob : gameData.currentSkill;
+	let quickTaskDisplayElement = document.getElementById("quickTaskDisplay");
+	let progressBar = quickTaskDisplayElement.querySelector("." + taskType);
+	progressBar.querySelector(".name").textContent = `${currentTask.name} lvl ${currentTask.level}`;
+	progressBar.querySelector(".progressFill").style.width = (currentTask.xp / currentTask.getMaxXp()) * 100 + "%";
 }
 
 /*
@@ -699,49 +678,39 @@ function updateRequiredRows(data, categoryType) {
 }
 
 function updateTaskRows() {
-	for (key in gameData.taskData) {
-		var task = gameData.taskData[key];
-		var row = document.getElementById("row " + task.name);
+	for (let key in gameData.taskData) {
+		let task = gameData.taskData[key];
+		let row = document.getElementById("row " + task.name);
 		row.getElementsByClassName("level")[0].textContent = task.level;
-		row.getElementsByClassName("xpGain")[0].textContent = format(
-			task.getXpGain()
-		);
-		row.getElementsByClassName("xpLeft")[0].textContent = format(
-			task.getXpLeft()
-		);
+		row.getElementsByClassName("xpGain")[0].textContent = format(task.getXpGain());
+		row.getElementsByClassName("xpLeft")[0].textContent = format(task.getXpLeft());
 
-		var maxLevel = row.getElementsByClassName("maxLevel")[0];
+		let maxLevel = row.getElementsByClassName("maxLevel")[0];
 		maxLevel.textContent = task.maxLevel;
 		gameData.rebirthOneCount > 0
 			? maxLevel.classList.remove("hidden")
 			: maxLevel.classList.add("hidden");
 
-		var progressFill = row.getElementsByClassName("progressFill")[0];
+		let progressFill = row.getElementsByClassName("progressFill")[0];
 		progressFill.style.width = (task.xp / task.getMaxXp()) * 100 + "%";
 		task == gameData.currentJob || task == gameData.currentSkill
 			? progressFill.classList.add("current")
 			: progressFill.classList.remove("current");
 
-		var valueElement = row.getElementsByClassName("value")[0];
-		valueElement.getElementsByClassName("income")[0].style.display =
-			task instanceof Job;
-		valueElement.getElementsByClassName("effect")[0].style.display =
-			task instanceof Skill;
+		let valueElement = row.getElementsByClassName("value")[0];
+		valueElement.getElementsByClassName("income")[0].style.display = task instanceof Job;
+		valueElement.getElementsByClassName("effect")[0].style.display = task instanceof Skill;
 
-		var skipSkillElement = row.getElementsByClassName("skipSkill")[0];
+		let skipSkillElement = row.getElementsByClassName("skipSkill")[0];
 		skipSkillElement.style.display =
 			task instanceof Skill && autoLearnElement.checked
 				? "block"
 				: "none";
 
 		if (task instanceof Job) {
-			formatCoins(
-				task.getIncome(),
-				valueElement.getElementsByClassName("income")[0]
-			);
+			formatCoins(task.getIncome(), valueElement.getElementsByClassName("income")[0]);
 		} else {
-			valueElement.getElementsByClassName("effect")[0].textContent =
-				task.getEffectDescription();
+			valueElement.getElementsByClassName("effect")[0].textContent = task.getEffectDescription();
 		}
 	}
 }
@@ -750,8 +719,6 @@ function updateItemRows() {
 	for (key in gameData.itemData) {
 		var item = gameData.itemData[key];
 		var row = document.getElementById("row " + item.name);
-		var button = row.getElementsByClassName("button")[0];
-		//button.disabled = gameData.coins < item.getExpense();
 		var active = row.getElementsByClassName("active")[0];
 		var color = itemCategories["Properties"].includes(item.name)
 			? headerRowColors["Properties"]
@@ -772,13 +739,13 @@ function updateItemRows() {
 
 function updateHeaderRows(categories) {
 	for (categoryName in categories) {
-		var className = removeSpaces(categoryName);
-		var headerRow = document.getElementsByClassName(className)[0];
-		var maxLevelElement = headerRow.getElementsByClassName("maxLevel")[0];
+		let className = removeSpaces(categoryName);
+		let headerRow = document.getElementsByClassName(className)[0];
+		let maxLevelElement = headerRow.getElementsByClassName("maxLevel")[0];
 		gameData.rebirthOneCount > 0
 			? maxLevelElement.classList.remove("hidden")
 			: maxLevelElement.classList.add("hidden");
-		var skipSkillElement = headerRow.getElementsByClassName("skipSkill")[0];
+		let skipSkillElement = headerRow.getElementsByClassName("skipSkill")[0];
 		skipSkillElement.style.display =
 			categories == skillCategories && autoLearnElement.checked
 				? "block"
@@ -788,16 +755,10 @@ function updateHeaderRows(categories) {
 
 function updateText() {
 	//Sidebar
-	document.getElementById("ageDisplay").textContent = daysToYears(
-		gameData.days
-	);
+	document.getElementById("ageDisplay").textContent = daysToYears(gameData.days);
 	document.getElementById("dayDisplay").textContent = getDay();
-	document.getElementById("lifespanDisplay").textContent = daysToYears(
-		getLifespan()
-	);
-	document.getElementById("pauseButton").textContent = gameData.paused
-		? "Play"
-		: "Pause";
+	document.getElementById("lifespanDisplay").textContent = daysToYears(getLifespan());
+	document.getElementById("pauseButton").textContent = gameData.paused ? "Play" : "Pause";
 
 	formatCoins(gameData.coins, document.getElementById("coinDisplay"));
 	setSignDisplay();
@@ -805,57 +766,39 @@ function updateText() {
 	formatCoins(getIncome(), document.getElementById("incomeDisplay"));
 	formatCoins(getExpense(), document.getElementById("expenseDisplay"));
 
-	document.getElementById("happinessDisplay").textContent =
-		getHappiness().toFixed(1);
+	document.getElementById("happinessDisplay").textContent = getHappiness().toFixed(1);
 
-	document.getElementById("evilDisplay").textContent =
-		gameData.evil.toFixed(1);
-	document.getElementById("evilGainDisplay").textContent =
-		getEvilGain().toFixed(1);
+	document.getElementById("evilDisplay").textContent = gameData.evil.toFixed(1);
+	document.getElementById("evilGainDisplay").textContent = getEvilGain().toFixed(1);
 
-	document.getElementById("timeWarpingDisplay").textContent =
-		"x" + getAllTimeMultipliers().toFixed(2);
-	document.getElementById("timeWarpingButton").textContent =
-		gameData.timeWarpingEnabled ? "Disable warp" : "Enable warp";
+	document.getElementById("timeWarpingDisplay").textContent = "x" + getAllTimeMultipliers().toFixed(2);
+	document.getElementById("timeWarpingButton").textContent = gameData.timeWarpingEnabled ? "Disable warp" : "Enable warp";
 
 	function updateBuildingBadges() {
 		var woodenHutButton = document.getElementById("woodenHut");
-		woodenHutButton.children[0].innerHTML =
-			o_townBuildingsContainer.o_woodenHut.count;
+		woodenHutButton.children[0].innerHTML = o_townBuildingsContainer.o_woodenHut.count;
 
 		var farmButton = document.getElementById("farm");
-		farmButton.children[0].innerHTML =
-			o_townBuildingsContainer.o_farm.count;
+		farmButton.children[0].innerHTML = o_townBuildingsContainer.o_farm.count;
 
 		var grainShedButton = document.getElementById("grainShed");
-		grainShedButton.children[0].innerHTML =
-			o_townBuildingsContainer.o_grainShed.count;
+		grainShedButton.children[0].innerHTML = o_townBuildingsContainer.o_grainShed.count;
 	}
 	updateBuildingBadges();
 
-	formatCoins(
-		gameData.rawTownIncome,
-		document.getElementById("townIncomeDisplay")
-	);
+	formatCoins(gameData.rawTownIncome, document.getElementById("townIncomeDisplay"));
 }
 
 function setSignDisplay() {
-	var signDisplay = document.getElementById("signDisplay");
-	if (getIncome() > getExpense()) {
-		signDisplay.textContent = "+";
-		signDisplay.style.color = "green";
-	} else if (getExpense() > getIncome()) {
-		signDisplay.textContent = "-";
-		signDisplay.style.color = "red";
-	} else {
-		signDisplay.textContent = "";
-		signDisplay.style.color = "gray";
-	}
+	const plus = document.querySelector(".positive-income-sign");
+	const minus = document.querySelector(".negative-income-sign");
+	const net = getIncome() - getExpense();
+	plus.style.display = net > 0 ? "inline" : "none";
+	minus.style.display = net < 0 ? "inline" : "none";
 }
 
 function getNet() {
-	var net = Math.abs(getIncome() - getExpense());
-	return net;
+	return Math.abs(getIncome() - getExpense());
 }
 
 function hideEntities() {
@@ -888,25 +831,16 @@ function doCurrentTask(task) {
 }
 
 function getIncome() {
-	var income = 0;
-	income += gameData.currentJob.getIncome();
-	income += gameData.rawTownIncome;
-	return income;
+	return gameData.currentJob.getIncome() + gameData.rawTownIncome;
 }
 
 function increaseCoins() {
-	var coins = applySpeed(getIncome());
-	gameData.coins += coins;
-}
-
-function daysToYears(days) {
-	var years = Math.floor(days / 365);
-	return years;
+	gameData.coins += applySpeed(getIncome());
 }
 
 function getCategoryFromEntityName(categoryType, entityName) {
-	for (categoryName in categoryType) {
-		var category = categoryType[categoryName];
+	for (let categoryName in categoryType) {
+		let category = categoryType[categoryName];
 		if (category.includes(entityName)) {
 			return category;
 		}
@@ -914,29 +848,29 @@ function getCategoryFromEntityName(categoryType, entityName) {
 }
 
 function getNextEntity(data, categoryType, entityName) {
-	var category = getCategoryFromEntityName(categoryType, entityName);
-	var nextIndex = category.indexOf(entityName) + 1;
+	let category = getCategoryFromEntityName(categoryType, entityName);
+	let nextIndex = category.indexOf(entityName) + 1;
 	if (nextIndex > category.length - 1) return null;
-	var nextEntityName = category[nextIndex];
-	var nextEntity = data[nextEntityName];
+	let nextEntityName = category[nextIndex];
+	let nextEntity = data[nextEntityName];
 	return nextEntity;
 }
 
 function autoPromote() {
 	if (!autoPromoteElement.checked) return;
-	var nextEntity = getNextEntity(
+	let nextEntity = getNextEntity(
 		gameData.taskData,
 		jobCategories,
 		gameData.currentJob.name
 	);
 	if (nextEntity == null) return;
-	var requirement = gameData.requirements[nextEntity.name];
+	let requirement = gameData.requirements[nextEntity.name];
 	if (requirement.isCompleted()) gameData.currentJob = nextEntity;
 }
 
 function checkSkillSkipped(skill) {
-	var row = document.getElementById("row " + skill.name);
-	var isSkillSkipped = row.getElementsByClassName("checkbox")[0].checked;
+	let row = document.getElementById("row " + skill.name);
+	let isSkillSkipped = row.getElementsByClassName("checkbox")[0].checked;
 	return isSkillSkipped;
 }
 
@@ -986,58 +920,40 @@ function setSkillWithLowestMaxXp() {
 	skillWithLowestMaxXp = gameData.taskData[skillName];
 }
 
-function getKeyOfLowestValueFromDict(dict) {
-	var values = [];
-	for (key in dict) {
-		var value = dict[key];
-		values.push(value);
-	}
-
-	values.sort(function (a, b) {
-		return a - b;
-	});
-
-	for (key in dict) {
-		var value = dict[key];
-		if (value == values[0]) {
-			return key;
-		}
-	}
-}
-
 function autoLearn() {
 	if (!autoLearnElement.checked || !skillWithLowestMaxXp) return;
 	gameData.currentSkill = skillWithLowestMaxXp;
 }
 
+function daysToYears(days) {
+	return Math.floor(days / 365);
+}
+
 function yearsToDays(years) {
-	var days = years * 365;
-	return days;
+	return Math.floor(years * 365);
 }
 
 function getDay() {
-	var day = Math.floor(gameData.days - daysToYears(gameData.days) * 365);
-	return day;
+	return Math.floor(gameData.days % 365);
 }
 
 function increaseDays() {
-	var increase = applySpeed(1);
-	gameData.days += increase;
+	gameData.days += applySpeed(1);
 }
 
 function format(number) {
 	// what tier? (determines SI symbol)
-	var tier = (Math.log10(number) / 3) | 0;
+	let tier = (Math.log10(number) / 3) | 0;
 
 	// if zero, we don't need a suffix
 	if (tier == 0) return number;
 
 	// get suffix and determine scale
-	var suffix = units[tier];
-	var scale = Math.pow(10, tier * 3);
+	let suffix = unitSuffixes[tier];
+	let scale = Math.pow(10, tier * 3);
 
 	// scale the number
-	var scaled = number / scale;
+	let scaled = number / scale;
 
 	// format number and add suffix
 	return scaled.toFixed(1) + suffix;
@@ -1051,21 +967,20 @@ function format(number) {
  *
  */
 function formatCoins(coins, element) {
-	var tiers = ["p", "g", "s"];
-	var colors = {
+	let tiers = ["p", "g", "s"];
+	let colors = {
 		p: "#79b9c7",
 		g: "#E5C100",
 		s: "#a8a8a8",
 		c: "#a15c2f"
 	};
-	var leftOver = coins;
-	var i = 0;
-	for (tier of tiers) {
-		var x = Math.floor(leftOver / Math.pow(10, (tiers.length - i) * 2));
-		var leftOver = Math.floor(
-			leftOver - x * Math.pow(10, (tiers.length - i) * 2)
-		);
-		var text = format(String(x)) + tier + " ";
+	let leftOver = coins;
+	let text;
+	let i = 0;
+	for (let tier of tiers) {
+		let x = Math.floor(leftOver / Math.pow(10, (tiers.length - i) * 2));
+		leftOver = Math.floor(leftOver - x * Math.pow(10, (tiers.length - i) * 2));
+		text = format(String(x)) + tier + " ";
 		element.children[i].textContent = x > 0 ? text : "";
 		element.children[i].style.color = colors[tier];
 		i += 1;
@@ -1074,38 +989,29 @@ function formatCoins(coins, element) {
 		element.children[3].textContent = "";
 		return;
 	}
-	var text = String(Math.floor(leftOver)) + "c";
+	text = String(Math.floor(leftOver)) + "c";
 	element.children[3].textContent = text;
 	element.children[3].style.color = colors["c"];
 }
 
 function getTaskElement(taskName) {
-	var task = gameData.taskData[taskName];
-	var element = document.getElementById(task.id);
-	return element;
+	return document.getElementById(gameData.taskData[taskName].id);
 }
 
 function getItemElement(itemName) {
-	var item = gameData.itemData[itemName];
-	var element = document.getElementById(item.id);
-	return element;
+	return document.getElementById(gameData.itemData[itemName].id);
 }
 
 function getElementsByClass(className) {
-	var elements = document.getElementsByClassName(removeSpaces(className));
-	return elements;
+	return document.getElementsByClassName(removeSpaces(className))
 }
 
 function toggleLightDarkMode() {
-	var body = document.getElementById("body");
-	body.classList.contains("dark")
-		? body.classList.remove("dark")
-		: body.classList.add("dark");
+	document.body.classList[document.body.classList.contains("dark") ? "remove" : "add"]("dark");
 }
 
 function removeSpaces(string) {
-	var string = string.replace(/ /g, "");
-	return string;
+	return string.replaceAll(" ", "");
 }
 
 function rebirthOne() {
@@ -1116,15 +1022,14 @@ function rebirthOne() {
 
 function rebirthTwo() {
 	testSuccessOfTownDestruction();
+
 	gameData.rebirthTwoCount += 1;
 	gameData.evil += getEvilGain();
 
 	rebirthReset();
 
-	for (taskName in gameData.taskData) {
-		var task = gameData.taskData[taskName];
-		task.maxLevel = 0;
-	}
+	Object.values(gameData.taskData).forEach(task => task.maxLevel = 0);
+
 	destroyTownWhileEmbracingEvil();
 	testSuccessOfTownDestruction();
 }
@@ -1139,31 +1044,28 @@ function rebirthReset() {
 	gameData.currentProperty = gameData.itemData["Homeless"];
 	gameData.currentMisc = [];
 
-	for (taskName in gameData.taskData) {
-		var task = gameData.taskData[taskName];
-		if (task.level > task.maxLevel) task.maxLevel = task.level;
+	Object.values(gameData.taskData).forEach(task => {
+		task.maxLevel = Math.max(task.level, task.maxLevel);
 		task.level = 0;
 		task.xp = 0;
-	}
+	});
 
-	for (key in gameData.requirements) {
-		var requirement = gameData.requirements[key];
-		if (requirement.completed && permanentUnlocks.includes(key)) continue;
-		requirement.completed = false;
-	}
+	Object.entries(gameData.requirements).forEach(([key, value]) => {
+		if (!value.completed || !permanentUnlocks.includes(key)) {
+			value.completed = false;
+		}
+	})
 }
 
 function getLifespan() {
-	var immortality = gameData.taskData["Immortality"];
-	var superImmortality = gameData.taskData["Super immortality"];
-	var lifespan =
-		baseLifespan * immortality.getEffect() * superImmortality.getEffect();
-	return lifespan;
+	let immortality = gameData.taskData["Immortality"];
+	let superImmortality = gameData.taskData["Super immortality"];
+	return baseLifespan * immortality.getEffect() * superImmortality.getEffect();
 }
 
 function isAlive() {
-	var condition = gameData.days < getLifespan();
-	var deathText = document.getElementById("deathText");
+	let condition = gameData.days < getLifespan();
+	let deathText = document.getElementById("deathText");
 	if (!condition) {
 		gameData.days = getLifespan();
 		deathText.classList.remove("hidden");
@@ -1174,62 +1076,38 @@ function isAlive() {
 }
 
 function assignMethods() {
-	for (key in gameData.taskData) {
-		var task = gameData.taskData[key];
+	Object.entries(gameData.taskData).forEach(([taskKey, task]) => {
 		if (task.baseData.income) {
 			task.baseData = jobBaseData[task.name];
-			task = Object.assign(new Job(jobBaseData[task.name]), task);
+			gameData.taskData[taskKey] = Object.assign(new Job(jobBaseData[task.name]), task);
 		} else {
 			task.baseData = skillBaseData[task.name];
-			task = Object.assign(new Skill(skillBaseData[task.name]), task);
+			gameData.taskData[taskKey] = Object.assign(new Skill(skillBaseData[task.name]), task);
 		}
-		gameData.taskData[key] = task;
-	}
+	})
 
-	for (key in gameData.itemData) {
-		var item = gameData.itemData[key];
+	Object.entries(gameData.itemData).forEach(([itemKey, item]) => {
 		item.baseData = itemBaseData[item.name];
-		item = Object.assign(new Item(itemBaseData[item.name]), item);
-		gameData.itemData[key] = item;
+		gameData.itemData[itemKey] = Object.assign(new Item(itemBaseData[item.name]), item);
+	});
+
+	const REQUIREMENT_CLASS = {
+		task: TaskRequirement,
+		coins: CoinRequirement,
+		age: AgeRequirement,
+		evil: EvilRequirement
 	}
 
-	for (key in gameData.requirements) {
-		var requirement = gameData.requirements[key];
-		if (requirement.type == "task") {
-			requirement = Object.assign(
-				new TaskRequirement(
-					requirement.elements,
-					requirement.requirements
-				),
-				requirement
-			);
-		} else if (requirement.type == "coins") {
-			requirement = Object.assign(
-				new CoinRequirement(
-					requirement.elements,
-					requirement.requirements
-				),
-				requirement
-			);
-		} else if (requirement.type == "age") {
-			requirement = Object.assign(
-				new AgeRequirement(
-					requirement.elements,
-					requirement.requirements
-				),
-				requirement
-			);
-		} else if (requirement.type == "evil") {
-			requirement = Object.assign(
-				new EvilRequirement(
-					requirement.elements,
-					requirement.requirements
-				),
-				requirement
-			);
-		}
-
-		var tempRequirement = tempData["requirements"][key];
+	for (let key in gameData.requirements) {
+		let requirement = gameData.requirements[key];
+		requirement = Object.assign(
+			new REQUIREMENT_CLASS[requirement.type](
+				requirement.elements,
+				requirement.requirements
+			),
+			requirement
+		);
+		let tempRequirement = tempData["requirements"][key];
 		requirement.elements = tempRequirement.elements;
 		requirement.requirements = tempRequirement.requirements;
 		gameData.requirements[key] = requirement;
@@ -1238,93 +1116,7 @@ function assignMethods() {
 	gameData.currentJob = gameData.taskData[gameData.currentJob.name];
 	gameData.currentSkill = gameData.taskData[gameData.currentSkill.name];
 	gameData.currentProperty = gameData.itemData[gameData.currentProperty.name];
-	var newArray = [];
-	for (misc of gameData.currentMisc) {
-		newArray.push(gameData.itemData[misc.name]);
-	}
-	gameData.currentMisc = newArray;
-}
-
-function replaceSaveDict(dict, saveDict) {
-	for (key in dict) {
-		if (!(key in saveDict)) {
-			saveDict[key] = dict[key];
-		} else if (dict == gameData.requirements) {
-			if (saveDict[key].type != tempData["requirements"][key].type) {
-				saveDict[key] = tempData["requirements"][key];
-			}
-		}
-	}
-
-	for (key in saveDict) {
-		if (!(key in dict)) {
-			delete saveDict[key];
-		}
-	}
-}
-
-// TODO: remove and update the data when interacting with the elements themselves rather than doing it here on game save
-function saveSkipSkillsAndDarkMode() {
-	gameData.autoPromote = autoPromoteElement.checked;
-	gameData.autoLearn = autoLearnElement.checked;
-	gameData.skippedSkills = [];
-
-	for (skillName in gameData.taskData) {
-		if (
-			document
-				.getElementById("row " + skillName)
-				.getElementsByClassName("checkbox")[0].checked
-		) {
-			gameData.skippedSkills.push(skillName);
-		}
-	}
-
-	gameData.darkMode = document
-		.getElementById("body")
-		.classList.contains("dark");
-}
-
-function loadSkipSkillsAndDarkMode() {
-	autoPromoteElement.checked = gameData.autoPromote;
-	autoLearnElement.checked = gameData.autoLearn;
-
-	for (var x = 0; x < gameData.skippedSkills.length; x++) {
-		document
-			.getElementById("row " + gameData.skippedSkills[x])
-			.getElementsByClassName("checkbox")[0].checked = true;
-	}
-
-	if (!gameData.darkMode) toggleLightDarkMode();
-}
-
-function saveGameData() {
-	saveSkipSkillsAndDarkMode();
-	saveTownState();
-	localStorage.setItem("gameDataSave", JSON.stringify(gameData));
-}
-
-function loadGameData() {
-	var gameDataSave = JSON.parse(localStorage.getItem("gameDataSave"));
-
-	if (gameDataSave !== null) {
-		let data = applyVersionMigrationsToData(gameDataSave);
-		if (data == null) {
-			console.error("Error loading game data");
-			return;
-		}
-		replaceSaveDict(gameData, data);
-		replaceSaveDict(gameData.requirements, data.requirements);
-		replaceSaveDict(gameData.taskData, data.taskData);
-		replaceSaveDict(gameData.itemData, data.itemData);
-		//replaceSaveDict(gameData.townData, data.townData);
-
-		gameData = data;
-		loadSkipSkillsAndDarkMode();
-	}
-
-	loadTownState();
-	gameData.rawTownIncome = updateRawTownIncome();
-	assignMethods();
+	gameData.currentMisc = gameData.currentMisc.map(misc => gameData.itemData[misc.name]);
 }
 
 function updateUI() {
@@ -1342,94 +1134,28 @@ function updateUI() {
 }
 
 function update() {
-	if (!gameData.paused) {
-		increaseDays();
-		autoPromote();
-		autoLearn();
-		doCurrentTask(gameData.currentJob);
-		doCurrentTask(gameData.currentSkill);
-		applyExpenses();
-		updateUI();
-	}
-}
+	if (gameData.paused) return;
 
-function resetGameData() {
-	//author: theSpuu
-	var result = confirm("Are you sure you want to erase all game progress? This cannot be undone.");
-	if (result) {
-		localStorage.clear();
-		location.reload();
-	}
-}
-
-function importGameData() {
-	var importExportBox = document.getElementById("importExportBox");
-	var data = JSON.parse(window.atob(importExportBox.value));
-	gameData = data;
-	saveGameData();
-	location.reload();
-}
-
-function exportGameData() {
-	var importExportBox = document.getElementById("importExportBox");
-	importExportBox.value = window.btoa(JSON.stringify(gameData));
-}
-
-function loadGameDataFromFile() {
-	var input = document.getElementById("uploadSaveInput");
-	if (input.files.length === 0) {
-		alert("No file selected. Please select a file to upload");
-		return;
-	}
-	var file = input.files[0];
-	var reader = new FileReader();
-	reader.readAsText(file);
-
-	reader.onload = function () {
-		var data = JSON.parse(window.atob(reader.result));
-		gameData = data;
-		saveGameData();
-		location.reload();
-	};
-}
-
-function downloadGameData() {
-	var filename = "progressKnightReborn.sav";
-	var data = window.btoa(JSON.stringify(gameData));
-	var file = new Blob([data], { type: "text/plain" });
-
-	if (window.navigator.msSaveOrOpenBlob)
-		// IE10+
-		window.navigator.msSaveOrOpenBlob(file, filename);
-	else {
-		let saveFile = document.createElement("a");
-		saveFile.download = filename;
-		saveFile.href = URL.createObjectURL(file);
-		saveFile.click();
-		URL.revokeObjectURL(saveFile.href);
-	}
+	increaseDays();
+	autoPromote();
+	autoLearn();
+	doCurrentTask(gameData.currentJob);
+	doCurrentTask(gameData.currentSkill);
+	applyExpenses();
+	updateUI();
 }
 
 function registerEventListeners() {
 	let woodenHutButton = document.getElementById("woodenHut");
-	woodenHutButton.addEventListener(
-		"click",
-		o_townBuildingsContainer.o_woodenHut.handleClick
-	);
+	woodenHutButton.addEventListener("click", o_townBuildingsContainer.o_woodenHut.handleClick);
 	woodenHutButton.addEventListener("mouseenter", updateTooltip);
 
 	let farmButton = document.getElementById("farm");
-	farmButton.addEventListener(
-		"click",
-		o_townBuildingsContainer.o_farm.handleClick
-	);
+	farmButton.addEventListener("click", o_townBuildingsContainer.o_farm.handleClick);
 	farmButton.addEventListener("mouseenter", updateTooltip);
 
 	let grainShedButton = document.getElementById("grainShed");
-	grainShedButton.addEventListener(
-		"click",
-		o_townBuildingsContainer.o_grainShed.handleClick
-	);
+	grainShedButton.addEventListener("click", o_townBuildingsContainer.o_grainShed.handleClick);
 	grainShedButton.addEventListener("mouseenter", updateTooltip);
 }
 
