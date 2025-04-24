@@ -115,10 +115,10 @@ function testSuccessOfTownDestruction() {
 		if (o_building.name in gameData.townData) {
 			var savedBuilding = gameData.townData[o_building.name];
 			ifVerboseLoggingSay(
-				`Type of Saved Count: ${typeof savedBuilding.count}\n`
-				`${o_building.name} Saved count: ${savedBuilding.count}\n`
-				`${o_building.name} Saved cost: ${savedBuilding.costOfNextBuilding}\n`
-				`${o_building.name} Working count: ${o_building.count}\n`
+				`Type of Saved Count: ${typeof savedBuilding.count}\n`,
+				`${o_building.name} Saved count: ${savedBuilding.count}\n`,
+				`${o_building.name} Saved cost: ${savedBuilding.costOfNextBuilding}\n`,
+				`${o_building.name} Working count: ${o_building.count}\n`,
 				`${o_building.name} Working cost: ${o_building.costOfNextBuilding}`
 			);
 			savedBuilding.count = o_building.count = 0;
