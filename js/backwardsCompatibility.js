@@ -31,8 +31,11 @@ function updateVersionNumber(data, newVersion) {
 }
 
 function applyVersionMigrationsToData(saveData) {
-	if (loadedVersionDiffDirection(gameData.version, saveData.version) > -1) {
+	if (loadedVersionDiffDirection(gameData.version, saveData.version) > 0) {
 		return;
+	}
+	else if (loadedVersionDiffDirection(gameData.version, saveData.version) == 0) {
+		return saveData;
 	}
 	let saveDataClone = structuredClone(saveData);
 	let parsedSaveVersion = parseVersionNumber(saveDataClone.version);
