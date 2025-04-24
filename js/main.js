@@ -1,19 +1,3 @@
-// initialization
-document.addEventListener("DOMContentLoaded", () => {
-	loadGameData();
-	bindObjectFunctionContexts();
-	registerEventListeners();
-	initCustomEffects();
-	addMultipliers();
-
-	switchSelectedTab(jobTabButton, "jobs");
-
-	update();
-	setInterval(update, 1000 / updateSpeed);
-	setInterval(saveGameData, 6000);
-	setInterval(setSkillWithLowestMaxXp, 1000);
-});
-
 var gameData = {
 	version: "0.4.1",
 	taskData: {},
@@ -1182,17 +1166,33 @@ function bindObjectFunctionContexts() {
 		);
 }
 
-createAllRows(jobCategories, "jobTable");
-createAllRows(skillCategories, "skillTable");
-createAllRows(itemCategories, "itemTable");
+// initialization
+document.addEventListener("DOMContentLoaded", () => {
+	createAllRows(jobCategories, "jobTable");
+	createAllRows(skillCategories, "skillTable");
+	createAllRows(itemCategories, "itemTable");
 
-createData(gameData.taskData, jobBaseData);
-createData(gameData.taskData, skillBaseData);
-createData(gameData.itemData, itemBaseData);
+	createData(gameData.taskData, jobBaseData);
+	createData(gameData.taskData, skillBaseData);
+	createData(gameData.itemData, itemBaseData);
 
-gameData.currentJob = gameData.taskData["Beggar"];
-gameData.currentSkill = gameData.taskData["Concentration"];
-gameData.currentProperty = gameData.itemData["Homeless"];
-gameData.currentMisc = [];
+	gameData.currentJob = gameData.taskData["Beggar"];
+	gameData.currentSkill = gameData.taskData["Concentration"];
+	gameData.currentProperty = gameData.itemData["Homeless"];
+	gameData.currentMisc = [];
 
-initializeRequirements();
+	initializeRequirements();
+
+	loadGameData();
+	bindObjectFunctionContexts();
+	registerEventListeners();
+	initCustomEffects();
+	addMultipliers();
+
+	switchSelectedTab(jobTabButton, "jobs");
+
+	update();
+	setInterval(update, 1000 / updateSpeed);
+	setInterval(saveGameData, 6000);
+	setInterval(setSkillWithLowestMaxXp, 1000);
+});
