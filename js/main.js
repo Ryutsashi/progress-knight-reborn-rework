@@ -29,22 +29,25 @@ var gameData = {
 	idleCitizens: 0
 };
 
-//tempData is used during initial game setup.
+const unitSuffixes = ["", "k", "M", "B", "T", "q", "Q", "Sx", "Sp", "Oc"];
+
+// tempData is used during initial game setup.
 var tempData = {};
 
-//used for Auto Learn skill switching logic
+// used for Auto Learn skill switching logic
 var skillWithLowestMaxXp = null;
 
 const autoPromoteElement = document.getElementById("autoPromote");
 const autoLearnElement = document.getElementById("autoLearn");
+const jobTabButton = document.getElementById("jobTabButton");
 
 const updateSpeed = 20;
+let baseGameSpeed = 4;
+const baseLifespan = yearsToDays(70);
 
-const baseLifespan = 365 * 70;
+const devModeFastProgress = false;
+const enableVerboseLogging = false;
 
-var devModeFastProgress = false;
-// ******* DEV MODE SPEED INCREASES ******* //
-var baseGameSpeed = 4;
 if (devModeFastProgress) {
 	for (let skill of ["Concentration", "Meditation", "Mana control"]) {
 		skillBaseData[skill].effect = 100;
@@ -52,163 +55,167 @@ if (devModeFastProgress) {
 	baseGameSpeed = 32;
 }
 
-const enableVerboseLogging = false;
-
 function ifVerboseLoggingSay(messageParts /*...arguments*/) {
 	if (enableVerboseLogging) console.log(...arguments);
 }
-
-const unitSuffixes = ["", "k", "M", "B", "T", "q", "Q", "Sx", "Sp", "Oc"];
-
-const jobTabButton = document.getElementById("jobTabButton");
 
 function getBaseLog(x, y) {
 	return Math.log(y) / Math.log(x);
 }
 
 function getBindedTaskEffect(taskName) {
-	var task = gameData.taskData[taskName];
-	return task.getEffect.bind(task);
+	return gameData.taskData[taskName].getEffect.bind(gameData.taskData[taskName]);
 }
 
 function getBindedItemEffect(itemName) {
-	var item = gameData.itemData[itemName];
-	return item.getEffect.bind(item);
+	return gameData.itemData[itemName].getEffect.bind(gameData.itemData[itemName]);
 }
 
 function addMultipliers() {
-	for (taskName in gameData.taskData) {
-		var task = gameData.taskData[taskName];
+	Object.values(gameData.taskData).forEach(task => {
 
-		task.xpMultipliers = [];
-		if (task instanceof Job) task.incomeMultipliers = [];
-
-		task.xpMultipliers.push(task.getMaxLevelMultiplier.bind(task));
-		task.xpMultipliers.push(getHappiness);
-		task.xpMultipliers.push(getBindedTaskEffect("Dark influence"));
-		task.xpMultipliers.push(getBindedTaskEffect("Demon training"));
+		task.xpMultipliers = [
+			task.getMaxLevelMultiplier.bind(task),
+			getHappiness,
+			getBindedTaskEffect("Dark influence"),
+			getBindedTaskEffect("Demon training")
+		];
 
 		if (task instanceof Job) {
-			task.incomeMultipliers.push(task.getLevelMultiplier.bind(task));
-			task.incomeMultipliers.push(getBindedTaskEffect("Demon's wealth"));
-			task.xpMultipliers.push(getBindedTaskEffect("Productivity"));
-			task.xpMultipliers.push(getBindedItemEffect("Personal squire"));
+			task.incomeMultipliers = [task.getLevelMultiplier.bind(task), getBindedTaskEffect("Demon's wealth")];
+			task.xpMultipliers.push(
+				getBindedTaskEffect("Productivity"),
+				getBindedItemEffect("Personal squire")
+			);
 		} else if (task instanceof Skill) {
-			task.xpMultipliers.push(getBindedTaskEffect("Concentration"));
-			task.xpMultipliers.push(getBindedItemEffect("Rag Clothing"));
-			task.xpMultipliers.push(getBindedItemEffect("Book"));
-			task.xpMultipliers.push(getBindedItemEffect("Study desk"));
-			task.xpMultipliers.push(getBindedItemEffect("Library"));
+			task.xpMultipliers.push(
+				getBindedTaskEffect("Concentration"),
+				getBindedItemEffect("Rag Clothing"),
+				getBindedItemEffect("Book"),
+				getBindedItemEffect("Study desk"),
+				getBindedItemEffect("Library")
+			);
 		}
 
 		if (jobCategories["Military"].includes(task.name)) {
-			task.incomeMultipliers.push(getBindedTaskEffect("Strength"));
-			task.xpMultipliers.push(getBindedTaskEffect("Battle tactics"));
-			task.xpMultipliers.push(getBindedItemEffect("Steel longsword"));
-		} else if (
-			jobCategories["The Order of Discovery"].includes(task.name)
-		) {
-			task.xpMultipliers.push(getBindedTaskEffect("Novel Knowledge"));
-			task.xpMultipliers.push(getBindedTaskEffect("Unusual Insight"));
+			task.incomeMultipliers.push(
+				getBindedTaskEffect("Strength")
+			);
+			task.xpMultipliers.push(
+				getBindedTaskEffect("Battle tactics"),
+				getBindedItemEffect("Steel longsword")
+		);
+		} else if (jobCategories["The Order of Discovery"].includes(task.name)) {
+			task.xpMultipliers.push(
+				getBindedTaskEffect("Novel Knowledge"),
+				getBindedTaskEffect("Unusual Insight")
+			);
 		} else if (task.name == "Farmer") {
 			//trying to make hand tools increase farmer income
 			task.incomeMultipliers.push(
-				getBindedItemEffect("Basic Farm Tools")
-			);
-			task.xpMultipliers.push(getBindedItemEffect("Small Field"));
-			task.incomeMultipliers.push(getBindedItemEffect("Small Field"));
-			task.incomeMultipliers.push(getBindedItemEffect("Ox-driven Plow"));
-			task.xpMultipliers.push(getBindedItemEffect("Ox-driven Plow"));
-			task.incomeMultipliers.push(
+				getBindedItemEffect("Basic Farm Tools"),
+				getBindedItemEffect("Small Field"),
+				getBindedItemEffect("Ox-driven Plow"),
 				getBindedItemEffect("Livestock-derived Fertilizer")
+			);
+			task.xpMultipliers.push(
+				getBindedItemEffect("Small Field"),
+				getBindedItemEffect("Ox-driven Plow")
 			);
 		} else if (task.name == "Fisherman") {
 			// Fishing rod boosts both income and fishing xp (bigger fish baby!)
 			task.incomeMultipliers.push(
 				getBindedItemEffect("Cheap Fishing Rod")
 			);
-			task.xpMultipliers.push(getBindedItemEffect("Cheap Fishing Rod"));
+			task.xpMultipliers.push(
+				getBindedItemEffect("Cheap Fishing Rod")
+			);
 		} else if (task.name == "Miner") {
 			//lantern boosts income and miner xp by 1.5x
-			task.incomeMultipliers.push(getBindedItemEffect("Miner's Lantern"));
-			task.xpMultipliers.push(getBindedItemEffect("Miner's Lantern"));
+			task.incomeMultipliers.push(
+				getBindedItemEffect("Miner's Lantern")
+			);
+			task.xpMultipliers.push(
+				getBindedItemEffect("Miner's Lantern")
+			);
 		} else if (task.name == "Blacksmith") {
 			//crappy anvil boosts income and xp of blacksmith by 1.5x
-			task.incomeMultipliers.push(getBindedItemEffect("Crappy Anvil"));
-			task.xpMultipliers.push(getBindedItemEffect("Crappy Anvil"));
-			task.incomeMultipliers.push(getBindedItemEffect("Breech Bellows"));
-			task.xpMultipliers.push(getBindedItemEffect("Breech Bellows"));
-		} else if (task.name == "Merchant") {
-			task.incomeMultipliers.push(getBindedItemEffect("Pack Horse"));
 			task.incomeMultipliers.push(
-				getBindedTaskEffect("Trade Psychology")
+				getBindedItemEffect("Crappy Anvil"),
+				getBindedItemEffect("Breech Bellows")
 			);
-			task.xpMultipliers.push(getBindedItemEffect("Pack Horse"));
-			task.incomeMultipliers.push(getBindedItemEffect("Small Shop"));
-			task.xpMultipliers.push(getBindedItemEffect("Small Shop"));
-			task.incomeMultipliers.push(getBindedItemEffect("Weapon Outlet"));
-			task.xpMultipliers.push(getBindedItemEffect("Weapon Outlet"));
+			task.xpMultipliers.push(
+				getBindedItemEffect("Crappy Anvil"),
+				getBindedItemEffect("Breech Bellows")
+			);
+		} else if (task.name == "Merchant") {
+			task.incomeMultipliers.push(
+				getBindedItemEffect("Pack Horse"),
+				getBindedTaskEffect("Trade Psychology"),
+				getBindedItemEffect("Small Shop"),
+				getBindedItemEffect("Weapon Outlet")
+			);
+			task.xpMultipliers.push(
+				getBindedItemEffect("Pack Horse"),
+				getBindedItemEffect("Small Shop"),
+				getBindedItemEffect("Weapon Outlet")
+			);
 		} else if (task.name == "Chairman") {
 			task.incomeMultipliers.push(
 				getBindedTaskEffect("Magical Engineering")
 			);
-			task.xpMultipliers.push(getBindedTaskEffect("Magical Engineering"));
-			task.xpMultipliers.push(getBindedTaskEffect("Scales Of Thought"));
-			task.xpMultipliers.push(getBindedTaskEffect("Magical Biology"));
+			task.xpMultipliers.push(
+				getBindedTaskEffect("Magical Engineering"),
+				getBindedTaskEffect("Scales Of Thought"),
+				getBindedTaskEffect("Magical Biology")
+			);
 		} else if (task.name == "Illustrious Chairman") {
 			task.incomeMultipliers.push(
 				getBindedTaskEffect("Magical Engineering")
 			);
-			task.xpMultipliers.push(getBindedTaskEffect("Magical Engineering"));
-			task.xpMultipliers.push(getBindedTaskEffect("Scales Of Thought"));
-			task.xpMultipliers.push(getBindedTaskEffect("Magical Biology"));
+			task.xpMultipliers.push(
+				getBindedTaskEffect("Magical Engineering"),
+				getBindedTaskEffect("Scales Of Thought"),
+				getBindedTaskEffect("Magical Biology")
+			);
 		} else if (task.name == "Strength") {
-			task.xpMultipliers.push(getBindedTaskEffect("Muscle memory"));
-			task.xpMultipliers.push(getBindedItemEffect("Dumbbells"));
+			task.xpMultipliers.push(
+				getBindedTaskEffect("Muscle memory"),
+				getBindedItemEffect("Dumbbells")
+			);
 		} else if (skillCategories["Magic"].includes(task.name)) {
-			task.xpMultipliers.push(getBindedItemEffect("Sapphire charm"));
-			task.xpMultipliers.push(getBindedTaskEffect("Novel Knowledge"));
-			task.xpMultipliers.push(getBindedTaskEffect("Unusual Insight"));
-			task.xpMultipliers.push(getBindedTaskEffect("Scales Of Thought"));
+			task.xpMultipliers.push(
+				getBindedItemEffect("Sapphire charm"),
+				getBindedTaskEffect("Novel Knowledge"),
+				getBindedTaskEffect("Unusual Insight"),
+				getBindedTaskEffect("Scales Of Thought")
+			);
 		} else if (skillCategories["Dark magic"].includes(task.name)) {
-			task.xpMultipliers.push(getEvil);
+			task.xpMultipliers.push(
+				getEvil
+			);
 		}
 		if (jobCategories["The Arcane Association"].includes(task.name)) {
-			task.xpMultipliers.push(getBindedTaskEffect("Mana control"));
-			task.xpMultipliers.push(getBindedTaskEffect("Novel Knowledge"));
-			task.xpMultipliers.push(getBindedTaskEffect("Unusual Insight"));
+			task.xpMultipliers.push(
+				getBindedTaskEffect("Mana control"),
+				getBindedTaskEffect("Novel Knowledge"),
+				getBindedTaskEffect("Unusual Insight")
+			);
 		}
 		if (jobCategories["Nobility"].includes(task.name)) {
 			//todo
 		}
-	}
+	});
 
-	for (itemName in gameData.itemData) {
-		var item = gameData.itemData[itemName];
-		item.expenseMultipliers = [];
-		item.expenseMultipliers.push(getBindedTaskEffect("Bargaining"));
-		item.expenseMultipliers.push(getBindedTaskEffect("Intimidation"));
-	}
+	Object.values(gameData.itemData).forEach(item => item.expenseMultipliers = [getBindedTaskEffect("Bargaining"), getBindedTaskEffect("Intimidation")]);
 }
 
 function initCustomEffects() {
-	var bargaining = gameData.taskData["Bargaining"];
-	bargaining.getEffect = function () {
-		var multiplier = 1 - getBaseLog(7, bargaining.level + 1) / 10;
-		if (multiplier < 0.1) {
-			multiplier = 0.1;
-		}
-		return multiplier;
-	};
+	let bargaining = gameData.taskData["Bargaining"];
+	bargaining.getEffect = () => Math.max(0.1, 1 - getBaseLog(7, bargaining.level + 1) / 10);
 
-	var intimidation = gameData.taskData["Intimidation"];
-	intimidation.getEffect = function () {
-		var multiplier = 1 - getBaseLog(7, intimidation.level + 1) / 10;
-		if (multiplier < 0.1) {
-			multiplier = 0.1;
-		}
-		return multiplier;
-	};
+	let intimidation = gameData.taskData["Intimidation"];
+	intimidation.getEffect = () => Math.max(0.1, 1 - getBaseLog(7, intimidation.level + 1) / 10);
 
 	//          ***    HISTORICAL NOTES    ***
 	// All gamespeed modifying effects are currently combined into this single Time warping multiplier
@@ -216,34 +223,21 @@ function initCustomEffects() {
 	// As of June 23rd 2021, gameSpeed effects are broken out into their respective effects and functions
 	// to increase clarity for players. The old method of combining effects into Time Warping caused Flow
 	// to change the Time Warping skill description, which led to confusion.
-	var timeWarping = gameData.taskData["Time warping"];
-	var flow = gameData.taskData["Flow"];
+
 	// This re-defined getEffect() function is called in the getGameSpeed() function.
-	timeWarping.getEffect = function () {
-		var multiplier = 1 + getBaseLog(13, timeWarping.level + 1);
-		return multiplier;
-	};
 
-	flow.getEffect = function () {
-		var multiplier = 1 + getBaseLog(100, flow.level + 1) / 1.3;
-		return multiplier;
-	};
+	let timeWarping = gameData.taskData["Time warping"];
+	timeWarping.getEffect = () => 1 + getBaseLog(13, timeWarping.level + 1);
 
-	var immortality = gameData.taskData["Immortality"];
-	immortality.getEffect = function () {
-		var multiplier = 1 + getBaseLog(33, immortality.level + 1);
-		return multiplier;
-	};
+	let flow = gameData.taskData["Flow"];
+	flow.getEffect = () => 1 + getBaseLog(100, flow.level + 1) / 1.3;
+
+	let immortality = gameData.taskData["Immortality"];
+	immortality.getEffect = () => 1 + getBaseLog(33, immortality.level + 1);
 }
 
 function getHappiness() {
-	var meditationEffect = getBindedTaskEffect("Meditation");
-	var butlerEffect = getBindedItemEffect("Butler");
-	var happiness =
-		meditationEffect() *
-		butlerEffect() *
-		gameData.currentProperty.getEffect();
-	return happiness;
+	return getBindedTaskEffect("Meditation")() * getBindedItemEffect("Butler")() * gameData.currentProperty.getEffect();
 }
 
 function getEvil() {
@@ -251,70 +245,47 @@ function getEvil() {
 }
 
 function applyMultipliers(value, multipliers) {
-	var finalMultiplier = 1;
-	multipliers.forEach(function (multiplierFunction) {
+	let finalMultiplier = 1;
+	multipliers.forEach(multiplierFunction => {
 		//wtf is multiplier function? It's called like a function, but we have no function definition ANYWHERE. Mrrrrr...
 		if (multiplierFunction !== null) {
 			try {
-				var multiplier = multiplierFunction();
-				finalMultiplier *= multiplier;
+				finalMultiplier *= multiplierFunction();
 			} catch (e) {
 				console.log(multiplierFunction);
 				console.trace();
 			}
 		}
 	});
-	var finalValue = Math.round(value * finalMultiplier);
-	return finalValue;
+	return Math.round(value * finalMultiplier);
 }
 
 function applySpeed(value) {
-	finalValue = (value * getGameSpeed()) / updateSpeed;
-	return finalValue;
+	return (value * getGameSpeed()) / updateSpeed;
 }
 
 function getEvilGain() {
-	var evilControl = gameData.taskData["Evil control"];
-	var bloodMeditation = gameData.taskData["Blood meditation"];
-	var evil = evilControl.getEffect() * bloodMeditation.getEffect();
-	return evil;
+	return gameData.taskData["Evil control"].getEffect() * gameData.taskData["Blood meditation"].getEffect();
 }
 
 function getAllTimeMultipliers() {
-	var timeWarping = gameData.taskData["Time warping"];
-	var flow = gameData.taskData["Flow"];
-	var flowSpeed = flow.getEffect();
-	var timeWarpingSpeed = gameData.timeWarpingEnabled
-		? timeWarping.getEffect()
-		: 1;
-	var totalTimeMultiplier = flowSpeed * timeWarpingSpeed;
-	return totalTimeMultiplier;
+	if (!gameData.timeWarpingEnabled) return 1;
+	return gameData.taskData["Time warping"].getEffect() * gameData.taskData["Flow"].getEffect();
 }
 
 function getGameSpeed() {
-	var gameSpeed =
-		baseGameSpeed *
-		+!gameData.paused *
-		+isAlive() *
-		getAllTimeMultipliers();
-	return gameSpeed;
+	return baseGameSpeed * !gameData.paused * isAlive() * getAllTimeMultipliers();
 }
 
 function applyExpenses() {
-	var coins = applySpeed(getExpense());
-	gameData.coins -= coins;
+	gameData.coins -= applySpeed(getExpense());
 	if (gameData.coins < 0) {
 		goBankrupt();
 	}
 }
 
 function getExpense() {
-	var expense = 0;
-	expense += gameData.currentProperty.getExpense();
-	for (misc of gameData.currentMisc) {
-		expense += misc.getExpense();
-	}
-	return expense;
+	return gameData.currentMisc.reduce((sum, misc) => misc.getExpense() + sum, gameData.currentProperty.getExpense());
 }
 
 function goBankrupt() {
@@ -487,10 +458,10 @@ function updateQuickTaskDisplay(taskType) {
  *
  */
 function updateRequiredRows(data, categoryType) {
-	var requiredRows = document.getElementsByClassName("requiredRow");
-	for (requiredRow of requiredRows) {
-		var nextEntity = null;
-		var category = categoryType[requiredRow.id]; //requiredRow.id is simple the category name. For items, it's either the array Property or Misc
+	let requiredRows = document.getElementsByClassName("requiredRow");
+	for (let requiredRow of requiredRows) {
+		let nextEntity = null;
+		let category = categoryType[requiredRow.id]; //requiredRow.id is simple the category name. For items, it's either the array Property or Misc
 		if (category == null) {
 			continue;
 		}
@@ -500,10 +471,10 @@ function updateRequiredRows(data, categoryType) {
 		// So this for loop is responsible for choosing the row we use as the required row, and is a good target for changing the logic of
 		// required row display.
 		if (categoryType.Misc == undefined) {
-			for (i = 0; i < category.length; i++) {
-				var entityName = category[i]; //first we grab the name, like "Beggar" or "Rag Clothing"
+			for (let i = 0; i < category.length; i++) {
+				let entityName = category[i]; //first we grab the name, like "Beggar" or "Rag Clothing"
 				if (i >= category.length - 1) break;
-				var requirements = gameData.requirements[entityName]; //grab any requirements
+				let requirements = gameData.requirements[entityName]; //grab any requirements
 				if (requirements && i == 0) {
 					//if the thing has requirements, its the first in the array, and they aren't completed, set this thing as the nextEntity
 					if (!requirements.isCompleted()) {
@@ -512,11 +483,11 @@ function updateRequiredRows(data, categoryType) {
 					}
 				}
 
-				var nextIndex = i + 1;
+				let nextIndex = i + 1;
 				if (nextIndex >= category.length) {
 					break;
 				}
-				var nextEntityName = category[nextIndex];
+				let nextEntityName = category[nextIndex];
 				nextEntityRequirements = gameData.requirements[nextEntityName];
 
 				if (!nextEntityRequirements.isCompleted()) {
@@ -529,10 +500,10 @@ function updateRequiredRows(data, categoryType) {
 		// Step one:
 		// Step two: then we'll
 		else if (categoryType.Misc != undefined) {
-			for (i = 0; i < category.length; i++) {
-				var entityName = category[i]; //first we grab the name, like "Beggar" or "Rag Clothing"
+			for (let i = 0; i < category.length; i++) {
+				let entityName = category[i]; //first we grab the name, like "Beggar" or "Rag Clothing"
 				if (i >= category.length - 1) break;
-				var requirements = gameData.requirements[entityName]; //grab any requirements
+				let requirements = gameData.requirements[entityName]; //grab any requirements
 				if (requirements && i == 0) {
 					//if the thing has requirements, its the first in the array, and they aren't completed, set this thing as the nextEntity
 					if (!requirements.isCompleted()) {
@@ -541,11 +512,11 @@ function updateRequiredRows(data, categoryType) {
 					}
 				}
 
-				var nextIndex = i + 1;
+				let nextIndex = i + 1;
 				if (nextIndex >= category.length) {
 					break;
 				}
-				var nextEntityName = category[nextIndex];
+				let nextEntityName = category[nextIndex];
 				nextEntityRequirements = gameData.requirements[nextEntityName];
 
 				if (!nextEntityRequirements.isCompleted()) {
@@ -662,63 +633,45 @@ function updateRequiredRows(data, categoryType) {
 }
 
 function updateTaskRows() {
-	for (let key in gameData.taskData) {
-		let task = gameData.taskData[key];
-		let row = document.getElementById("row " + task.name);
-		row.getElementsByClassName("level")[0].textContent = task.level;
-		row.getElementsByClassName("xpGain")[0].textContent = format(task.getXpGain());
-		row.getElementsByClassName("xpLeft")[0].textContent = format(task.getXpLeft());
+	let row, maxLevel, progressFill, valueElement;
+	Object.values(gameData.taskData).forEach(task => {
+		row = document.getElementById("row " + task.name);
+		row.querySelector(".level").textContent = task.level;
+		row.querySelector(".xpGain").textContent = format(task.getXpGain());
+		row.querySelector(".xpLeft").textContent = format(task.getXpLeft());
 
-		let maxLevel = row.getElementsByClassName("maxLevel")[0];
+		maxLevel = row.querySelector(".maxLevel");
 		maxLevel.textContent = task.maxLevel;
-		gameData.rebirthOneCount > 0
-			? maxLevel.classList.remove("hidden")
-			: maxLevel.classList.add("hidden");
+		maxLevel.classList[gameData.rebirthOneCount > 0 ? "remove" : "add"]("hidden");
 
-		let progressFill = row.getElementsByClassName("progressFill")[0];
+		progressFill = row.querySelector(".progressFill");
 		progressFill.style.width = (task.xp / task.getMaxXp()) * 100 + "%";
-		task == gameData.currentJob || task == gameData.currentSkill
-			? progressFill.classList.add("current")
-			: progressFill.classList.remove("current");
+		progressFill.classList[task == gameData.currentJob || task == gameData.currentSkill ? "add" : "remove"]("current");
 
-		let valueElement = row.getElementsByClassName("value")[0];
-		valueElement.getElementsByClassName("income")[0].style.display = task instanceof Job;
-		valueElement.getElementsByClassName("effect")[0].style.display = task instanceof Skill;
+		valueElement = row.querySelector(".value");
+		valueElement.querySelector(".income").style.display = task instanceof Job;
+		valueElement.querySelector(".effect").style.display = task instanceof Skill;
 
-		let skipSkillElement = row.getElementsByClassName("skipSkill")[0];
-		skipSkillElement.style.display =
-			task instanceof Skill && autoLearnElement.checked
-				? "block"
-				: "none";
+		row.querySelector(".skipSkill").style.display = task instanceof Skill && autoLearnElement.checked ? "block" : "none";
 
 		if (task instanceof Job) {
-			formatCoins(task.getIncome(), valueElement.getElementsByClassName("income")[0]);
+			formatCoins(task.getIncome(), valueElement.querySelector(".income"));
 		} else {
-			valueElement.getElementsByClassName("effect")[0].textContent = task.getEffectDescription();
+			valueElement.querySelector(".effect").textContent = task.getEffectDescription();
 		}
-	}
+	});
 }
 
 function updateItemRows() {
-	for (key in gameData.itemData) {
-		var item = gameData.itemData[key];
-		var row = document.getElementById("row " + item.name);
-		var active = row.getElementsByClassName("active")[0];
-		var color = itemCategories["Properties"].includes(item.name)
-			? headerRowColors["Properties"]
-			: headerRowColors["Misc"];
-		active.style.backgroundColor =
-			gameData.currentMisc.includes(item) ||
-			item == gameData.currentProperty
-				? color
-				: "white";
-		row.getElementsByClassName("effect")[0].textContent =
-			item.getEffectDescription();
-		formatCoins(
-			item.getExpense(),
-			row.getElementsByClassName("expense")[0]
-		);
-	}
+	let row, active, color;
+	Object.values(gameData.itemData).forEach(item => {
+		row = document.getElementById("row " + item.name);
+		active = row.querySelector(".active");
+		color = itemCategories["Properties"].includes(item.name) ? headerRowColors["Properties"] : headerRowColors["Misc"];
+		active.style.backgroundColor = gameData.currentMisc.includes(item) || item == gameData.currentProperty ? color : "white";
+		row.querySelector(".effect").textContent = item.getEffectDescription();
+		formatCoins(item.getExpense(), row.querySelector(".expense"));	
+	});
 }
 
 function updateHeaderRows(categories) {
