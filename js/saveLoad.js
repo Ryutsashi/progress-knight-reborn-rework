@@ -4,7 +4,7 @@ function saveSkipSkillsAndDarkMode() {
 	gameData.autoLearn = autoLearnElement.checked;
 	gameData.skippedSkills = [];
 
-	for (skillName in gameData.taskData) {
+	for (let skillName in gameData.taskData) {
 		if (
 			document
 				.getElementById("row " + skillName)
@@ -23,7 +23,7 @@ function loadSkipSkillsAndDarkMode() {
 	autoPromoteElement.checked = gameData.autoPromote;
 	autoLearnElement.checked = gameData.autoLearn;
 
-	for (var x = 0; x < gameData.skippedSkills.length; x++) {
+	for (let x = 0; x < gameData.skippedSkills.length; x++) {
 		document
 			.getElementById("row " + gameData.skippedSkills[x])
 			.getElementsByClassName("checkbox")[0].checked = true;
@@ -39,7 +39,7 @@ function saveGameData() {
 }
 
 function loadGameData() {
-	var gameDataSave = JSON.parse(localStorage.getItem("gameDataSave"));
+	let gameDataSave = JSON.parse(localStorage.getItem("gameDataSave"));
 
 	if (gameDataSave !== null) {
 		let data = applyVersionMigrationsToData(gameDataSave);
@@ -47,11 +47,6 @@ function loadGameData() {
 			console.error("Error loading game data");
 			return;
 		}
-		// replaceSaveDict(gameData, data);
-		// replaceSaveDict(gameData.requirements, data.requirements);
-		// replaceSaveDict(gameData.taskData, data.taskData);
-		// replaceSaveDict(gameData.itemData, data.itemData);
-		//replaceSaveDict(gameData.townData, data.townData);
 
 		gameData = data;
 		loadSkipSkillsAndDarkMode();
@@ -64,7 +59,7 @@ function loadGameData() {
 
 function resetGameData() {
 	//author: theSpuu
-	var result = confirm("Are you sure you want to erase all game progress? This cannot be undone.");
+	let result = confirm("Are you sure you want to erase all game progress? This cannot be undone.");
 	if (result) {
 		localStorage.clear();
 		location.reload();
@@ -72,30 +67,29 @@ function resetGameData() {
 }
 
 function importGameData() {
-	var importExportBox = document.getElementById("importExportBox");
-	var data = JSON.parse(window.atob(importExportBox.value));
+	let importExportBox = document.getElementById("importExportBox");
+	let data = JSON.parse(window.atob(importExportBox.value));
 	gameData = data;
 	saveGameData();
 	location.reload();
 }
 
 function exportGameData() {
-	var importExportBox = document.getElementById("importExportBox");
-	importExportBox.value = window.btoa(JSON.stringify(gameData));
+	document.getElementById("importExportBox").value = window.btoa(JSON.stringify(gameData));
 }
 
 function loadGameDataFromFile() {
-	var input = document.getElementById("uploadSaveInput");
+	let input = document.getElementById("uploadSaveInput");
 	if (input.files.length === 0) {
 		alert("No file selected. Please select a file to upload");
 		return;
 	}
-	var file = input.files[0];
-	var reader = new FileReader();
+	let file = input.files[0];
+	let reader = new FileReader();
 	reader.readAsText(file);
 
 	reader.onload = function () {
-		var data = JSON.parse(window.atob(reader.result));
+		let data = JSON.parse(window.atob(reader.result));
 		gameData = data;
 		saveGameData();
 		location.reload();
@@ -103,9 +97,9 @@ function loadGameDataFromFile() {
 }
 
 function downloadGameData() {
-	var filename = "progressKnightReborn.sav";
-	var data = window.btoa(JSON.stringify(gameData));
-	var file = new Blob([data], { type: "text/plain" });
+	let filename = "progressKnightReborn.sav";
+	let data = window.btoa(JSON.stringify(gameData));
+	let file = new Blob([data], { type: "text/plain" });
 
 	if (window.navigator.msSaveOrOpenBlob)
 		// IE10+

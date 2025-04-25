@@ -1,3 +1,5 @@
+const autoLearnElement = document.getElementById("autoLearn");
+
 function checkSkillSkipped(skill) {
 	return document.getElementById("row " + skill.name).querySelector(".checkbox").checked;
 }

@@ -32,14 +32,19 @@ var gameData = {
 
 const unitSuffixes = ["", "k", "M", "B", "T", "q", "Q", "Sx", "Sp", "Oc"];
 
+/*
+	TODO: remove this after data and save/load restructuring
+	The reason is that we're currently using gameData as both a saveState and, during load,
+	we override its values with actual game state data. This causes some information to be
+	overwritten so tempData is used to restore some of it. However, the loaded data and
+	the game state should be kept separate.
+*/
 // tempData is used during initial game setup.
 var tempData = {};
 
 // used for Auto Learn skill switching logic
 var skillWithLowestMaxXp = null;
 
-// const autoPromoteElement = document.getElementById("autoPromote");
-const autoLearnElement = document.getElementById("autoLearn");
 const jobTabButton = document.getElementById("jobTabButton");
 
 const updateSpeed = 20;
