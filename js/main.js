@@ -8,7 +8,8 @@ var gameData = {
 	coins: 0,
 	days: 365 * 14,
 	evil: 0,
-	paused: false,
+	isDead: false,
+	isPaused: false,
 	timeWarpingEnabled: true,
 
 	rebirthOneCount: 0,
@@ -37,7 +38,7 @@ var tempData = {};
 // used for Auto Learn skill switching logic
 var skillWithLowestMaxXp = null;
 
-const autoPromoteElement = document.getElementById("autoPromote");
+// const autoPromoteElement = document.getElementById("autoPromote");
 const autoLearnElement = document.getElementById("autoLearn");
 const jobTabButton = document.getElementById("jobTabButton");
 
@@ -59,209 +60,58 @@ function ifVerboseLoggingSay(messageParts /*...arguments*/) {
 	if (enableVerboseLogging) console.log(...arguments);
 }
 
+// TODO: silly method, remove when refactored out of the code
+function removeSpaces(string) {
+	return string.replaceAll(" ", "");
+}
+
+// TODO: remove when data is refactored
+function getTaskElement(taskName) {
+	return document.getElementById(gameData.taskData[taskName].id);
+}
+
+// TODO: remove when data is refactored
+function getItemElement(itemName) {
+	return document.getElementById(gameData.itemData[itemName].id);
+}
+
+//#region getters, calc methods, and other simple helpers
+function formatNumberWithSuffix(number) {
+	// what tier? (determines SI symbol)
+	let tier = (Math.log10(number) / 3) | 0;
+
+	// if zero, we don't need a suffix
+	if (tier == 0) return number;
+
+	// get suffix and determine scale
+	let suffix = unitSuffixes[tier];
+	let scale = Math.pow(10, tier * 3);
+
+	// scale the number
+	let scaled = number / scale;
+
+	// format number and add suffix
+	return scaled.toFixed(1) + suffix;
+}
+
 function getBaseLog(x, y) {
 	return Math.log(y) / Math.log(x);
 }
 
-function getBindedTaskEffect(taskName) {
+function getNet() {
+	return Math.abs(getIncome() - getExpense());
+}
+
+function getIncome() {
+	return gameData.currentJob.getIncome() + gameData.rawTownIncome;
+}
+
+function getBoundTaskEffect(taskName) {
 	return gameData.taskData[taskName].getEffect.bind(gameData.taskData[taskName]);
 }
 
-function getBindedItemEffect(itemName) {
+function getBoundItemEffect(itemName) {
 	return gameData.itemData[itemName].getEffect.bind(gameData.itemData[itemName]);
-}
-
-function addMultipliers() {
-	Object.values(gameData.taskData).forEach(task => {
-
-		task.xpMultipliers = [
-			task.getMaxLevelMultiplier.bind(task),
-			getHappiness,
-			getBindedTaskEffect("Dark influence"),
-			getBindedTaskEffect("Demon training")
-		];
-
-		if (task instanceof Job) {
-			task.incomeMultipliers = [task.getLevelMultiplier.bind(task), getBindedTaskEffect("Demon's wealth")];
-			task.xpMultipliers.push(
-				getBindedTaskEffect("Productivity"),
-				getBindedItemEffect("Personal squire")
-			);
-		} else if (task instanceof Skill) {
-			task.xpMultipliers.push(
-				getBindedTaskEffect("Concentration"),
-				getBindedItemEffect("Rag Clothing"),
-				getBindedItemEffect("Book"),
-				getBindedItemEffect("Study desk"),
-				getBindedItemEffect("Library")
-			);
-		}
-
-		if (jobCategories["Military"].includes(task.name)) {
-			task.incomeMultipliers.push(
-				getBindedTaskEffect("Strength")
-			);
-			task.xpMultipliers.push(
-				getBindedTaskEffect("Battle tactics"),
-				getBindedItemEffect("Steel longsword")
-		);
-		} else if (jobCategories["The Order of Discovery"].includes(task.name)) {
-			task.xpMultipliers.push(
-				getBindedTaskEffect("Novel Knowledge"),
-				getBindedTaskEffect("Unusual Insight")
-			);
-		} else if (task.name == "Farmer") {
-			//trying to make hand tools increase farmer income
-			task.incomeMultipliers.push(
-				getBindedItemEffect("Basic Farm Tools"),
-				getBindedItemEffect("Small Field"),
-				getBindedItemEffect("Ox-driven Plow"),
-				getBindedItemEffect("Livestock-derived Fertilizer")
-			);
-			task.xpMultipliers.push(
-				getBindedItemEffect("Small Field"),
-				getBindedItemEffect("Ox-driven Plow")
-			);
-		} else if (task.name == "Fisherman") {
-			// Fishing rod boosts both income and fishing xp (bigger fish baby!)
-			task.incomeMultipliers.push(
-				getBindedItemEffect("Cheap Fishing Rod")
-			);
-			task.xpMultipliers.push(
-				getBindedItemEffect("Cheap Fishing Rod")
-			);
-		} else if (task.name == "Miner") {
-			//lantern boosts income and miner xp by 1.5x
-			task.incomeMultipliers.push(
-				getBindedItemEffect("Miner's Lantern")
-			);
-			task.xpMultipliers.push(
-				getBindedItemEffect("Miner's Lantern")
-			);
-		} else if (task.name == "Blacksmith") {
-			//crappy anvil boosts income and xp of blacksmith by 1.5x
-			task.incomeMultipliers.push(
-				getBindedItemEffect("Crappy Anvil"),
-				getBindedItemEffect("Breech Bellows")
-			);
-			task.xpMultipliers.push(
-				getBindedItemEffect("Crappy Anvil"),
-				getBindedItemEffect("Breech Bellows")
-			);
-		} else if (task.name == "Merchant") {
-			task.incomeMultipliers.push(
-				getBindedItemEffect("Pack Horse"),
-				getBindedTaskEffect("Trade Psychology"),
-				getBindedItemEffect("Small Shop"),
-				getBindedItemEffect("Weapon Outlet")
-			);
-			task.xpMultipliers.push(
-				getBindedItemEffect("Pack Horse"),
-				getBindedItemEffect("Small Shop"),
-				getBindedItemEffect("Weapon Outlet")
-			);
-		} else if (task.name == "Chairman") {
-			task.incomeMultipliers.push(
-				getBindedTaskEffect("Magical Engineering")
-			);
-			task.xpMultipliers.push(
-				getBindedTaskEffect("Magical Engineering"),
-				getBindedTaskEffect("Scales Of Thought"),
-				getBindedTaskEffect("Magical Biology")
-			);
-		} else if (task.name == "Illustrious Chairman") {
-			task.incomeMultipliers.push(
-				getBindedTaskEffect("Magical Engineering")
-			);
-			task.xpMultipliers.push(
-				getBindedTaskEffect("Magical Engineering"),
-				getBindedTaskEffect("Scales Of Thought"),
-				getBindedTaskEffect("Magical Biology")
-			);
-		} else if (task.name == "Strength") {
-			task.xpMultipliers.push(
-				getBindedTaskEffect("Muscle memory"),
-				getBindedItemEffect("Dumbbells")
-			);
-		} else if (skillCategories["Magic"].includes(task.name)) {
-			task.xpMultipliers.push(
-				getBindedItemEffect("Sapphire charm"),
-				getBindedTaskEffect("Novel Knowledge"),
-				getBindedTaskEffect("Unusual Insight"),
-				getBindedTaskEffect("Scales Of Thought")
-			);
-		} else if (skillCategories["Dark magic"].includes(task.name)) {
-			task.xpMultipliers.push(
-				getEvil
-			);
-		}
-		if (jobCategories["The Arcane Association"].includes(task.name)) {
-			task.xpMultipliers.push(
-				getBindedTaskEffect("Mana control"),
-				getBindedTaskEffect("Novel Knowledge"),
-				getBindedTaskEffect("Unusual Insight")
-			);
-		}
-		if (jobCategories["Nobility"].includes(task.name)) {
-			//todo
-		}
-	});
-
-	Object.values(gameData.itemData).forEach(item => item.expenseMultipliers = [getBindedTaskEffect("Bargaining"), getBindedTaskEffect("Intimidation")]);
-}
-
-function initCustomEffects() {
-	let bargaining = gameData.taskData["Bargaining"];
-	bargaining.getEffect = () => Math.max(0.1, 1 - getBaseLog(7, bargaining.level + 1) / 10);
-
-	let intimidation = gameData.taskData["Intimidation"];
-	intimidation.getEffect = () => Math.max(0.1, 1 - getBaseLog(7, intimidation.level + 1) / 10);
-
-	//          ***    HISTORICAL NOTES    ***
-	// All gamespeed modifying effects are currently combined into this single Time warping multiplier
-	// for simplicity's sake. As of this writing, the two relevant skills are Time warping and Flow.
-	// As of June 23rd 2021, gameSpeed effects are broken out into their respective effects and functions
-	// to increase clarity for players. The old method of combining effects into Time Warping caused Flow
-	// to change the Time Warping skill description, which led to confusion.
-
-	// This re-defined getEffect() function is called in the getGameSpeed() function.
-
-	let timeWarping = gameData.taskData["Time warping"];
-	timeWarping.getEffect = () => 1 + getBaseLog(13, timeWarping.level + 1);
-
-	let flow = gameData.taskData["Flow"];
-	flow.getEffect = () => 1 + getBaseLog(100, flow.level + 1) / 1.3;
-
-	let immortality = gameData.taskData["Immortality"];
-	immortality.getEffect = () => 1 + getBaseLog(33, immortality.level + 1);
-}
-
-function getHappiness() {
-	return getBindedTaskEffect("Meditation")() * getBindedItemEffect("Butler")() * gameData.currentProperty.getEffect();
-}
-
-function getEvil() {
-	return gameData.evil;
-}
-
-function applyMultipliers(value, multipliers) {
-	let finalMultiplier = 1;
-	multipliers.forEach(multiplierFunction => {
-		//wtf is multiplier function? It's called like a function, but we have no function definition ANYWHERE. Mrrrrr...
-		if (multiplierFunction !== null) {
-			try {
-				finalMultiplier *= multiplierFunction();
-			} catch (e) {
-				console.log(multiplierFunction);
-				console.trace();
-			}
-		}
-	});
-	return Math.round(value * finalMultiplier);
-}
-
-function applySpeed(value) {
-	return (value * getGameSpeed()) / updateSpeed;
 }
 
 function getEvilGain() {
@@ -274,7 +124,205 @@ function getAllTimeMultipliers() {
 }
 
 function getGameSpeed() {
-	return baseGameSpeed * !gameData.paused * isAlive() * getAllTimeMultipliers();
+	return baseGameSpeed * !gameData.isPaused * isAlive() * getAllTimeMultipliers();
+}
+
+function getExpense() {
+	return gameData.currentMisc.reduce((sum, misc) => misc.getExpense() + sum, gameData.currentProperty.getExpense());
+}
+
+function getHappiness() {
+    return getBoundTaskEffect("Meditation")() * getBoundItemEffect("Butler")() * gameData.currentProperty.getEffect();
+}
+
+function getEvil() {
+    return gameData.evil;
+}
+
+function daysToYears(days) {
+	return Math.floor(days / 365);
+}
+
+function yearsToDays(years) {
+	return Math.floor(years * 365);
+}
+
+function getDayInYear() {
+	return Math.floor(gameData.days % 365);
+}
+//#endregion
+
+//#region basic update methods
+function increaseCoins() {
+	gameData.coins += applySpeed(getIncome());
+}
+
+function increaseDays() {
+	gameData.days += applySpeed(1);
+}
+
+function applySpeed(value) {
+	return (value * getGameSpeed()) / updateSpeed;
+}
+
+function setActiveTask(taskName) {
+	let task = gameData.taskData[taskName];
+	gameData[task instanceof Job ? "currentJob" : "currentSkill"] = task;
+}
+
+// ok, def not a SIMPLE method
+function addMultipliers() {
+	Object.values(gameData.taskData).forEach(task => {
+
+		task.xpMultipliers = [
+			task.getMaxLevelMultiplier.bind(task),
+			getHappiness,
+			getBoundTaskEffect("Dark influence"),
+			getBoundTaskEffect("Demon training")
+		];
+
+		if (task instanceof Job) {
+			task.incomeMultipliers = [
+				task.getLevelMultiplier.bind(task),
+				getBoundTaskEffect("Demon's wealth")
+			];
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Productivity"),
+				getBoundItemEffect("Personal squire")
+			);
+		} else if (task instanceof Skill) {
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Concentration"),
+				getBoundItemEffect("Rag Clothing"),
+				getBoundItemEffect("Book"),
+				getBoundItemEffect("Study desk"),
+				getBoundItemEffect("Library")
+			);
+		}
+
+		if (jobCategories["Military"].includes(task.name)) {
+			task.incomeMultipliers.push(
+				getBoundTaskEffect("Strength")
+			);
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Battle tactics"),
+				getBoundItemEffect("Steel longsword")
+		);
+		} else if (jobCategories["The Order of Discovery"].includes(task.name)) {
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Novel Knowledge"),
+				getBoundTaskEffect("Unusual Insight")
+			);
+		} else if (task.name == "Farmer") {
+			//trying to make hand tools increase farmer income
+			task.incomeMultipliers.push(
+				getBoundItemEffect("Basic Farm Tools"),
+				getBoundItemEffect("Small Field"),
+				getBoundItemEffect("Ox-driven Plow"),
+				getBoundItemEffect("Livestock-derived Fertilizer")
+			);
+			task.xpMultipliers.push(
+				getBoundItemEffect("Small Field"),
+				getBoundItemEffect("Ox-driven Plow")
+			);
+		} else if (task.name == "Fisherman") {
+			// Fishing rod boosts both income and fishing xp (bigger fish baby!)
+			task.incomeMultipliers.push(
+				getBoundItemEffect("Cheap Fishing Rod")
+			);
+			task.xpMultipliers.push(
+				getBoundItemEffect("Cheap Fishing Rod")
+			);
+		} else if (task.name == "Miner") {
+			//lantern boosts income and miner xp by 1.5x
+			task.incomeMultipliers.push(
+				getBoundItemEffect("Miner's Lantern")
+			);
+			task.xpMultipliers.push(
+				getBoundItemEffect("Miner's Lantern")
+			);
+		} else if (task.name == "Blacksmith") {
+			//crappy anvil boosts income and xp of blacksmith by 1.5x
+			task.incomeMultipliers.push(
+				getBoundItemEffect("Crappy Anvil"),
+				getBoundItemEffect("Breech Bellows")
+			);
+			task.xpMultipliers.push(
+				getBoundItemEffect("Crappy Anvil"),
+				getBoundItemEffect("Breech Bellows")
+			);
+		} else if (task.name == "Merchant") {
+			task.incomeMultipliers.push(
+				getBoundItemEffect("Pack Horse"),
+				getBoundTaskEffect("Trade Psychology"),
+				getBoundItemEffect("Small Shop"),
+				getBoundItemEffect("Weapon Outlet")
+			);
+			task.xpMultipliers.push(
+				getBoundItemEffect("Pack Horse"),
+				getBoundItemEffect("Small Shop"),
+				getBoundItemEffect("Weapon Outlet")
+			);
+		} else if (task.name == "Chairman") {
+			task.incomeMultipliers.push(
+				getBoundTaskEffect("Magical Engineering")
+			);
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Magical Engineering"),
+				getBoundTaskEffect("Scales Of Thought"),
+				getBoundTaskEffect("Magical Biology")
+			);
+		} else if (task.name == "Illustrious Chairman") {
+			task.incomeMultipliers.push(
+				getBoundTaskEffect("Magical Engineering")
+			);
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Magical Engineering"),
+				getBoundTaskEffect("Scales Of Thought"),
+				getBoundTaskEffect("Magical Biology")
+			);
+		} else if (task.name == "Strength") {
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Muscle memory"),
+				getBoundItemEffect("Dumbbells")
+			);
+		} else if (skillCategories["Magic"].includes(task.name)) {
+			task.xpMultipliers.push(
+				getBoundItemEffect("Sapphire charm"),
+				getBoundTaskEffect("Novel Knowledge"),
+				getBoundTaskEffect("Unusual Insight"),
+				getBoundTaskEffect("Scales Of Thought")
+			);
+		} else if (skillCategories["Dark magic"].includes(task.name)) {
+			task.xpMultipliers.push(
+				getEvil
+			);
+		}
+		if (jobCategories["The Arcane Association"].includes(task.name)) {
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Mana control"),
+				getBoundTaskEffect("Novel Knowledge"),
+				getBoundTaskEffect("Unusual Insight")
+			);
+		}
+		if (jobCategories["Nobility"].includes(task.name)) {
+			//todo
+		}
+	});
+
+	Object.values(gameData.itemData).forEach(item => item.expenseMultipliers = [getBoundTaskEffect("Bargaining"), getBoundTaskEffect("Intimidation")]);
+}
+
+function applyMultipliers(value, multipliers) {
+	// let finalMultiplier = 1;
+	// multipliers.forEach(multiplierFunction => {
+	// 	if (multiplierFunction) {
+	// 		ifVerboseLoggingSay("multiplierFunction is null");
+	// 	}
+	// 	else finalMultiplier *= multiplierFunction();
+	// });
+	// return Math.round(value * finalMultiplier);
+	return Math.round(multipliers.reduce((final, fn) => final *= fn(), value));
 }
 
 function applyExpenses() {
@@ -284,46 +332,26 @@ function applyExpenses() {
 	}
 }
 
-function getExpense() {
-	return gameData.currentMisc.reduce((sum, misc) => misc.getExpense() + sum, gameData.currentProperty.getExpense());
-}
-
-function goBankrupt() {
-	gameData.coins = 0;
-	gameData.currentProperty = gameData.itemData["Homeless"];
-	gameData.currentMisc = [];
-}
-
-function switchSelectedTab(newSelectedTab, oldSelectedTab) {
-	let tabs = Array.from(document.querySelectorAll(".tab"));
-	tabs.forEach(tab => tab.style.display = "none");
-	document.getElementById(oldSelectedTab).style.display = "block";
-
-	let tabButtons = document.querySelectorAll(".tabButton");
-	for (let tab of tabButtons) {
-		tab.classList.remove("w3-blue-gray");
+function doCurrentTask(task) {
+	task.increaseXp();
+	if (task instanceof Job) {
+		increaseCoins();
 	}
-	newSelectedTab.classList.add("w3-blue-gray");
+}
+//#endregion
+
+//#region simple state modifier methods
+function setActiveProperty(propertyName) {
+	gameData.currentProperty = gameData.itemData[propertyName];
 }
 
 function togglePause() {
-	gameData.paused = !gameData.paused;
+	gameData.isPaused = !gameData.isPaused;
 	updateUI();
 }
 
 function toggleTimeWarping() {
 	gameData.timeWarpingEnabled = !gameData.timeWarpingEnabled;
-}
-
-function setActiveTask(taskName) {
-	let task = gameData.taskData[taskName];
-	task instanceof Job
-		? (gameData.currentJob = task)
-		: (gameData.currentSkill = task);
-}
-
-function setActiveProperty(propertyName) {
-	gameData.currentProperty = gameData.itemData[propertyName];
 }
 
 function toggleActiveMisc(miscName) {
@@ -338,20 +366,23 @@ function toggleActiveMisc(miscName) {
 		gameData.currentMisc.push(misc);
 	}
 }
+//#endregion
 
-function createData(data, baseData) {
-	Object.values(baseData).forEach(entity => createEntity(data, entity));
+//#region UI methods
+function toggleLightDarkMode() {
+	document.body.classList[document.body.classList.contains("dark") ? "remove" : "add"]("dark");
 }
 
-function createEntity(data, entity) {
-	if ("income" in entity) {
-		data[entity.name] = new Job(entity);
-	} else if ("maxXp" in entity) {
-		data[entity.name] = new Skill(entity);
-	} else {
-		data[entity.name] = new Item(entity);
+function switchSelectedTab(newSelectedTab, oldSelectedTab) {
+	let tabs = Array.from(document.querySelectorAll(".tab"));
+	tabs.forEach(tab => tab.style.display = "none");
+	document.getElementById(oldSelectedTab).style.display = "block";
+
+	let tabButtons = document.querySelectorAll(".tabButton");
+	for (let tab of tabButtons) {
+		tab.classList.remove("w3-blue-gray");
 	}
-	data[entity.name].id = "row " + entity.name;
+	newSelectedTab.classList.add("w3-blue-gray");
 }
 
 function createRequiredRow(categoryName) {
@@ -382,11 +413,10 @@ function createHeaderRow(templates, categoryType, categoryName) {
 	return headerRow;
 }
 
-
 function createRow(templates, name, categoryName, categoryType) {
 	let row = templates.row.content.firstElementChild.cloneNode(true);
-	row.getElementsByClassName("name")[0].textContent = name;
-	row.getElementsByClassName("tooltipText")[0].textContent = tooltips[name];
+	row.querySelector(".name").textContent = name;
+	row.querySelector(".tooltipText").textContent = tooltips[name];
 	/* TODO: uncomment once data is restructured
 	for (let data of [
 		jobBaseData,
@@ -395,15 +425,15 @@ function createRow(templates, name, categoryName, categoryType) {
 		itemBaseData
 	]) {
 		if (data[name]) {
-			row.getElementsByClassName("tooltipText")[0].textContent = data[name].tooltip;
+			row.querySelector(".tooltipText").textContent = data[name].tooltip;
 		}
 	}
 	*/
 	row.id = "row " + name;
 	if (categoryType != itemCategories) {
-		row.getElementsByClassName("progressBar")[0].onclick = () => setActiveTask(name);
+		row.querySelector(".progress-bar").onclick = () => setActiveTask(name);
 	} else {
-		row.getElementsByClassName("button")[0].onclick =
+		row.querySelector(".button").onclick =
 			categoryName == "Properties"
 				? () => setActiveProperty(name)
 				: () => toggleActiveMisc(name);
@@ -443,7 +473,7 @@ function updateQuickTaskDisplay(taskType) {
 	let quickTaskDisplayElement = document.getElementById("quickTaskDisplay");
 	let progressBar = quickTaskDisplayElement.querySelector("." + taskType);
 	progressBar.querySelector(".name").textContent = `${currentTask.name} lvl ${currentTask.level}`;
-	progressBar.querySelector(".progressFill").style.width = (currentTask.xp / currentTask.getMaxXp()) * 100 + "%";
+	updateProgressBar(progressBar.querySelector(".progress-bar-fill"), currentTask.xp, currentTask.getMaxXp());
 }
 
 /*
@@ -570,7 +600,7 @@ function updateRequiredRows(data, categoryType) {
 				if (requirementObject instanceof EvilRequirement) {
 					evilElement.classList.remove("hiddenTask");
 					evilElement.textContent =
-						format(requirements[0].requirement) + " evil";
+						formatNumberWithSuffix(requirements[0].requirement) + " evil";
 				} else {
 					levelElement.classList.remove("hiddenTask");
 
@@ -585,7 +615,7 @@ function updateRequiredRows(data, categoryType) {
 							" level " +
 							task.level +
 							"/" +
-							format(requirement.requirement) +
+							formatNumberWithSuffix(requirement.requirement) +
 							",";
 						finalText += text;
 					}
@@ -618,9 +648,9 @@ function updateRequiredRows(data, categoryType) {
 							" " +
 							requirement.task +
 							" level " +
-							format(task.level) +
+							formatNumberWithSuffix(task.level) +
 							"/" +
-							format(requirement.requirement) +
+							formatNumberWithSuffix(requirement.requirement) +
 							",";
 						finalText += text;
 					}
@@ -632,27 +662,31 @@ function updateRequiredRows(data, categoryType) {
 	}
 }
 
+function updateProgressBar(element, value, max) {
+	element.style.width = (value / max) * 100 + "%";
+}
+
 function updateTaskRows() {
 	let row, maxLevel, progressFill, valueElement;
 	Object.values(gameData.taskData).forEach(task => {
 		row = document.getElementById("row " + task.name);
 		row.querySelector(".level").textContent = task.level;
-		row.querySelector(".xpGain").textContent = format(task.getXpGain());
-		row.querySelector(".xpLeft").textContent = format(task.getXpLeft());
+		row.querySelector(".xpGain").textContent = formatNumberWithSuffix(task.getXpGain());
+		row.querySelector(".xpLeft").textContent = formatNumberWithSuffix(task.getXpLeft());
 
 		maxLevel = row.querySelector(".maxLevel");
 		maxLevel.textContent = task.maxLevel;
 		maxLevel.classList[gameData.rebirthOneCount > 0 ? "remove" : "add"]("hidden");
 
-		progressFill = row.querySelector(".progressFill");
-		progressFill.style.width = (task.xp / task.getMaxXp()) * 100 + "%";
+		progressFill = row.querySelector(".progress-bar-fill");
+		updateProgressBar(progressFill, task.xp, task.getMaxXp());
 		progressFill.classList[task == gameData.currentJob || task == gameData.currentSkill ? "add" : "remove"]("current");
 
 		valueElement = row.querySelector(".value");
 		valueElement.querySelector(".income").style.display = task instanceof Job;
 		valueElement.querySelector(".effect").style.display = task instanceof Skill;
 
-		row.querySelector(".skipSkill").style.display = task instanceof Skill && autoLearnElement.checked ? "block" : "none";
+		row.querySelector(".skip-skill").style.display = task instanceof Skill && autoLearnElement.checked ? "block" : "none";
 
 		if (task instanceof Job) {
 			formatCoins(task.getIncome(), valueElement.querySelector(".income"));
@@ -677,12 +711,10 @@ function updateItemRows() {
 function updateHeaderRows(categories) {
 	for (categoryName in categories) {
 		let className = removeSpaces(categoryName);
-		let headerRow = document.getElementsByClassName(className)[0];
-		let maxLevelElement = headerRow.getElementsByClassName("maxLevel")[0];
-		gameData.rebirthOneCount > 0
-			? maxLevelElement.classList.remove("hidden")
-			: maxLevelElement.classList.add("hidden");
-		let skipSkillElement = headerRow.getElementsByClassName("skipSkill")[0];
+		let headerRow = document.querySelector("." + className);
+		let maxLevelElement = headerRow.querySelector(".maxLevel");
+		maxLevelElement.classList[gameData.rebirthOneCount > 0 ? "remove" : "add"]("hidden");
+		let skipSkillElement = headerRow.querySelector(".skip-skill");
 		skipSkillElement.style.display =
 			categories == skillCategories && autoLearnElement.checked
 				? "block"
@@ -693,9 +725,9 @@ function updateHeaderRows(categories) {
 function updateText() {
 	//Sidebar
 	document.getElementById("ageDisplay").textContent = daysToYears(gameData.days);
-	document.getElementById("dayDisplay").textContent = getDay();
+	document.getElementById("dayDisplay").textContent = getDayInYear();
 	document.getElementById("lifespanDisplay").textContent = daysToYears(getLifespan());
-	document.getElementById("pauseButton").textContent = gameData.paused ? "Play" : "Pause";
+	document.getElementById("pauseButton").textContent = gameData.isPaused ? "Play" : "Pause";
 
 	formatCoins(gameData.coins, document.getElementById("coinDisplay"));
 	setSignDisplay();
@@ -734,166 +766,15 @@ function setSignDisplay() {
 	minus.style.display = net < 0 ? "inline" : "none";
 }
 
-function getNet() {
-	return Math.abs(getIncome() - getExpense());
-}
-
 function hideEntities() {
-	for (key in gameData.requirements) {
-		var requirement = gameData.requirements[key];
-		var completed = requirement.isCompleted();
-		for (element of requirement.elements) {
-			if (completed) {
-				element.classList.remove("hidden");
-			} else {
-				element.classList.add("hidden");
-			}
+	let requirement, action;
+	for (let key in gameData.requirements) {
+		requirement = gameData.requirements[key];
+		action = requirement.isCompleted() ? "remove" : "add";
+		for (let element of requirement.elements) {
+			element.classList[action]("hidden");
 		}
 	}
-}
-
-function createItemData(baseData) {
-	for (var item of baseData) {
-		gameData.itemData[item.name] =
-			"happiness" in item ? new Property(task) : new Misc(task);
-		gameData.itemData[item.name].id = "item " + item.name;
-	}
-}
-
-function doCurrentTask(task) {
-	task.increaseXp();
-	if (task instanceof Job) {
-		increaseCoins();
-	}
-}
-
-function getIncome() {
-	return gameData.currentJob.getIncome() + gameData.rawTownIncome;
-}
-
-function increaseCoins() {
-	gameData.coins += applySpeed(getIncome());
-}
-
-function getCategoryFromEntityName(categoryType, entityName) {
-	for (let categoryName in categoryType) {
-		let category = categoryType[categoryName];
-		if (category.includes(entityName)) {
-			return category;
-		}
-	}
-}
-
-function getNextEntity(data, categoryType, entityName) {
-	let category = getCategoryFromEntityName(categoryType, entityName);
-	let nextIndex = category.indexOf(entityName) + 1;
-	if (nextIndex > category.length - 1) return null;
-	let nextEntityName = category[nextIndex];
-	let nextEntity = data[nextEntityName];
-	return nextEntity;
-}
-
-function autoPromote() {
-	if (!autoPromoteElement.checked) return;
-	let nextEntity = getNextEntity(
-		gameData.taskData,
-		jobCategories,
-		gameData.currentJob.name
-	);
-	if (nextEntity == null) return;
-	let requirement = gameData.requirements[nextEntity.name];
-	if (requirement.isCompleted()) gameData.currentJob = nextEntity;
-}
-
-function checkSkillSkipped(skill) {
-	let row = document.getElementById("row " + skill.name);
-	let isSkillSkipped = row.getElementsByClassName("checkbox")[0].checked;
-	return isSkillSkipped;
-}
-
-function setSkillWithLowestMaxXp() {
-	var enabledSkills = [];
-
-	for (skillName in gameData.taskData) {
-		var skill = gameData.taskData[skillName];
-		var requirement = gameData.requirements[skillName];
-		/*
-        Getting an autolearn error, and the dev console says there is an uncaught
-        TypeError at this line of code below during the requirement.isCompleted() call. 
-        I think the error is saying that when calling requirement.isCompleted, requirement is undefined.
-        This would make sense if I have a skill that doesn't have any unlock requirements, which I think
-        is true of Novel Knowledge for table rendering reasons. So the game logic assumes each skill has a requirement
-        without actually checking if requirement is non-null. 
-        */
-		if (skill instanceof Skill) {
-			//This check on the requirement variable is here to handle the case of a skill
-			//having no requirements. By setting requirement equal to Concentration's requirements,
-			//we prevent unchecked TypeErrors that have been breaking the auto learn feature.
-
-			// NOTE : FRAGILE FIX
-			// This fix will break if the Concentration skill is either removed from the game, renamed, or the requirement is no
-			// longer immediately satisfied upon starting a new game.
-			if (requirement == null) {
-				requirement = gameData.requirements["Concentration"];
-			}
-			if (requirement.isCompleted() && !checkSkillSkipped(skill)) {
-				enabledSkills.push(skill);
-			}
-		}
-	}
-
-	if (enabledSkills.length == 0) {
-		skillWithLowestMaxXp = gameData.taskData["Concentration"];
-		return;
-	}
-
-	enabledSkills.sort((lhs, rhs) => {
-		return (
-			lhs.getMaxXp() / lhs.getXpGain() - rhs.getMaxXp() / rhs.getXpGain()
-		);
-	});
-
-	var skillName = enabledSkills[0].name;
-	skillWithLowestMaxXp = gameData.taskData[skillName];
-}
-
-function autoLearn() {
-	if (!autoLearnElement.checked || !skillWithLowestMaxXp) return;
-	gameData.currentSkill = skillWithLowestMaxXp;
-}
-
-function daysToYears(days) {
-	return Math.floor(days / 365);
-}
-
-function yearsToDays(years) {
-	return Math.floor(years * 365);
-}
-
-function getDay() {
-	return Math.floor(gameData.days % 365);
-}
-
-function increaseDays() {
-	gameData.days += applySpeed(1);
-}
-
-function format(number) {
-	// what tier? (determines SI symbol)
-	let tier = (Math.log10(number) / 3) | 0;
-
-	// if zero, we don't need a suffix
-	if (tier == 0) return number;
-
-	// get suffix and determine scale
-	let suffix = unitSuffixes[tier];
-	let scale = Math.pow(10, tier * 3);
-
-	// scale the number
-	let scaled = number / scale;
-
-	// format number and add suffix
-	return scaled.toFixed(1) + suffix;
 }
 
 /*
@@ -917,7 +798,7 @@ function formatCoins(coins, element) {
 	for (let tier of tiers) {
 		let x = Math.floor(leftOver / Math.pow(10, (tiers.length - i) * 2));
 		leftOver = Math.floor(leftOver - x * Math.pow(10, (tiers.length - i) * 2));
-		text = format(String(x)) + tier + " ";
+		text = formatNumberWithSuffix(String(x)) + tier + " ";
 		element.children[i].textContent = x > 0 ? text : "";
 		element.children[i].style.color = colors[tier];
 		i += 1;
@@ -931,26 +812,12 @@ function formatCoins(coins, element) {
 	element.children[3].style.color = colors["c"];
 }
 
-function getTaskElement(taskName) {
-	return document.getElementById(gameData.taskData[taskName].id);
+function showDeathText(show) {
+	document.getElementById("deathText").classList[show ? "remove" : "add"]("hidden");
 }
+//#endregion
 
-function getItemElement(itemName) {
-	return document.getElementById(gameData.itemData[itemName].id);
-}
-
-function getElementsByClass(className) {
-	return document.getElementsByClassName(removeSpaces(className))
-}
-
-function toggleLightDarkMode() {
-	document.body.classList[document.body.classList.contains("dark") ? "remove" : "add"]("dark");
-}
-
-function removeSpaces(string) {
-	return string.replaceAll(" ", "");
-}
-
+//#region life events
 function rebirthOne() {
 	gameData.rebirthOneCount += 1;
 
@@ -973,13 +840,15 @@ function rebirthTwo() {
 
 function rebirthReset() {
 	switchSelectedTab(jobTabButton, "jobs");
+	showDeathText(false);
 
 	gameData.coins = 0;
-	gameData.days = 365 * 14;
+	gameData.days = yearsToDays(14);
 	gameData.currentJob = gameData.taskData["Beggar"];
 	gameData.currentSkill = gameData.taskData["Concentration"];
 	gameData.currentProperty = gameData.itemData["Homeless"];
 	gameData.currentMisc = [];
+	gameData.isDead = false;
 
 	Object.values(gameData.taskData).forEach(task => {
 		task.maxLevel = Math.max(task.level, task.maxLevel);
@@ -994,22 +863,106 @@ function rebirthReset() {
 	})
 }
 
+function die() {
+	gameData.days = getLifespan();
+	gameData.isDead = true;
+	showDeathText(true);
+}
+
+function goBankrupt() {
+	gameData.coins = 0;
+	gameData.currentProperty = gameData.itemData["Homeless"];
+	gameData.currentMisc = [];
+}
+
 function getLifespan() {
-	let immortality = gameData.taskData["Immortality"];
-	let superImmortality = gameData.taskData["Super immortality"];
-	return baseLifespan * immortality.getEffect() * superImmortality.getEffect();
+	return baseLifespan * gameData.taskData["Immortality"].getEffect() * gameData.taskData["Super immortality"].getEffect();
 }
 
 function isAlive() {
-	let condition = gameData.days < getLifespan();
-	let deathText = document.getElementById("deathText");
-	if (!condition) {
-		gameData.days = getLifespan();
-		deathText.classList.remove("hidden");
-	} else {
-		deathText.classList.add("hidden");
+	if (gameData.days < getLifespan()) {
+		return true;
 	}
-	return condition;
+	die();
+	return false;
+}
+//#endregion
+
+//#region frame update methods
+function updateUI() {
+	updateTaskRows();
+	updateItemRows();
+	updateRequiredRows(gameData.taskData, jobCategories);
+	updateRequiredRows(gameData.taskData, skillCategories);
+	updateRequiredRows(gameData.itemData, itemCategories);
+	updateHeaderRows(jobCategories);
+	updateHeaderRows(skillCategories);
+	updateQuickTaskDisplay("job");
+	updateQuickTaskDisplay("skill");
+	hideEntities();
+	updateText();
+}
+
+function update() {
+	if (gameData.isPaused) return;
+
+	increaseDays();
+	autoPromote();
+	autoLearn();
+	doCurrentTask(gameData.currentJob);
+	doCurrentTask(gameData.currentSkill);
+	applyExpenses();
+	updateUI();
+}
+//#endregion
+
+//#region init methods
+function initCustomEffects() {
+	let bargaining = gameData.taskData["Bargaining"];
+	bargaining.getEffect = () => Math.max(0.1, 1 - getBaseLog(7, bargaining.level + 1) / 10);
+
+	let intimidation = gameData.taskData["Intimidation"];
+	intimidation.getEffect = () => Math.max(0.1, 1 - getBaseLog(7, intimidation.level + 1) / 10);
+
+	//          ***    HISTORICAL NOTES    ***
+	// All gamespeed modifying effects are currently combined into this single Time warping multiplier
+	// for simplicity's sake. As of this writing, the two relevant skills are Time warping and Flow.
+	// As of June 23rd 2021, gameSpeed effects are broken out into their respective effects and functions
+	// to increase clarity for players. The old method of combining effects into Time Warping caused Flow
+	// to change the Time Warping skill description, which led to confusion.
+
+	// This re-defined getEffect() function is called in the getGameSpeed() function.
+
+	let timeWarping = gameData.taskData["Time warping"];
+	timeWarping.getEffect = () => 1 + getBaseLog(13, timeWarping.level + 1);
+
+	let flow = gameData.taskData["Flow"];
+	flow.getEffect = () => 1 + getBaseLog(100, flow.level + 1) / 1.3;
+
+	let immortality = gameData.taskData["Immortality"];
+	immortality.getEffect = () => 1 + getBaseLog(33, immortality.level + 1);
+}
+
+function createData(data, baseData) {
+	Object.values(baseData).forEach(entity => createEntity(data, entity));
+}
+
+function createEntity(data, entity) {
+	if ("income" in entity) {
+		data[entity.name] = new Job(entity);
+	} else if ("maxXp" in entity) {
+		data[entity.name] = new Skill(entity);
+	} else {
+		data[entity.name] = new Item(entity);
+	}
+	data[entity.name].id = "row " + entity.name;
+}
+
+function createItemData(baseData) {
+	for (let item of baseData) {
+		gameData.itemData[item.name] = new ("happiness" in item ? Property : Misc)(task);
+		gameData.itemData[item.name].id = "item " + item.name;
+	}
 }
 
 function assignMethods() {
@@ -1056,32 +1009,6 @@ function assignMethods() {
 	gameData.currentMisc = gameData.currentMisc.map(misc => gameData.itemData[misc.name]);
 }
 
-function updateUI() {
-	updateTaskRows();
-	updateItemRows();
-	updateRequiredRows(gameData.taskData, jobCategories);
-	updateRequiredRows(gameData.taskData, skillCategories);
-	updateRequiredRows(gameData.itemData, itemCategories);
-	updateHeaderRows(jobCategories);
-	updateHeaderRows(skillCategories);
-	updateQuickTaskDisplay("job");
-	updateQuickTaskDisplay("skill");
-	hideEntities();
-	updateText();
-}
-
-function update() {
-	if (gameData.paused) return;
-
-	increaseDays();
-	autoPromote();
-	autoLearn();
-	doCurrentTask(gameData.currentJob);
-	doCurrentTask(gameData.currentSkill);
-	applyExpenses();
-	updateUI();
-}
-
 function registerEventListeners() {
 	let woodenHutButton = document.getElementById("woodenHut");
 	woodenHutButton.addEventListener("click", o_townBuildingsContainer.o_woodenHut.handleClick);
@@ -1119,7 +1046,6 @@ function bindObjectFunctionContexts() {
 		);
 }
 
-// initialization
 document.addEventListener("DOMContentLoaded", () => {
 	createAllRows(jobCategories, "jobTable");
 	createAllRows(skillCategories, "skillTable");
@@ -1143,9 +1069,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	addMultipliers();
 
 	switchSelectedTab(jobTabButton, "jobs");
+	showDeathText(gameData.isDead);
 
 	update();
 	setInterval(update, 1000 / updateSpeed);
 	setInterval(saveGameData, 6000);
 	setInterval(setSkillWithLowestMaxXp, 1000);
 });
+//#endregion

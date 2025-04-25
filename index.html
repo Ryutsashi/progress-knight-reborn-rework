@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="css/dark.css">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
     <title>Progress Knight Reborn</title>
+    <!-- <script src="data/GameData.js" type="module"></script> -->
     
 </head>
 <body id="body" class="dark">
@@ -71,14 +72,14 @@
                 </ul>
 
                 <span id="quickTaskDisplay">
-                    <div style="width: 230px" class="small-margin inline job progress-bar progressBar">
-                        <div class="progress-fill progressFill" style="background-color:rgb(225, 165, 0)"></div>
+                    <div style="width: 230px" class="small-margin inline job progress-bar">
+                        <div class="progress-bar-fill" style="background-color:rgb(225, 165, 0)"></div>
                         <div class="progress-text name">Task</div>
                     </div>
                     <div class="sidebar-element" style="color: gray">Current job</div>
 
-                    <div style="width: 230px" class="small-margin skill progress-bar progressBar">
-                        <div class="progress-fill progressFill" style="background-color:rgb(225, 165, 0)"></div>
+                    <div style="width: 230px" class="small-margin skill progress-bar">
+                        <div class="progress-bar-fill" style="background-color:rgb(225, 165, 0)"></div>
                         <div class="progress-text name">Task</div>              
                     </div>
                     <div class="sidebar-element" style="color: gray">Current skill</div>
@@ -130,7 +131,7 @@
                         <th>Xp/day</th>
                         <th>Xp left</th>
                         <th class="maxLevel">Max level</th>
-                        <th class="skipSkill">Skip</th>
+                        <th class="skip-skill">Skip</th>
                     </tr>
                 </template>
 
@@ -146,8 +147,8 @@
                 <template class="rowTaskTemplate">
                     <tr>
                         <td>
-                            <div class="progress-bar progressBar tooltip">
-                                <div class="progress-fill progressFill"></div>
+                            <div class="progress-bar tooltip">
+                                <div class="progress-bar-fill"></div>
                                 <div class="progress-text name">Task</div>
                                 <span class="tooltipText"></span>
                             </div>
@@ -165,7 +166,7 @@
                         <td class="xpGain">Xp/day</td>
                         <td class="xpLeft">Xp left</td>
                         <td class="maxLevel">Max level</td>
-                        <td class="skipSkill">
+                        <td class="skip-skill">
                             <input class="checkbox" type="checkbox"></input>
                         </td>
                     </tr>
@@ -424,8 +425,8 @@
         <h4>Project Name</h4>
         <h5>Not started</h5>
         <!-- Inner progress bar text will show numerical progress, e.g. 101.3/534-->
-        <div class="progress-bar progressBar tooltip">
-            <div class="progress-fill progressFill"></div>
+        <div class="progress-bar tooltip">
+            <div class="progress-bar-fill"></div>
             <div class="progress-text name">Task</div>
             <span class="tooltipText">Tooltip, mutha fucka!</span>
         </div>
@@ -445,6 +446,8 @@
 <script type="text/javascript" src="js/data.js"></script>
 <script type="text/javascript" src="js/saveLoad.js"></script>
 <script type="text/javascript" src="js/requirements.js"></script>
+<script type="text/javascript" src="js/autopromote.js"></script>
+<script type="text/javascript" src="js/autolearn.js"></script>
 
 <script type="text/javascript" src="js/main.js"></script>
 

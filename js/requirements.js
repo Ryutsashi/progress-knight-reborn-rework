@@ -1,5 +1,11 @@
 function initializeRequirements() {
 
+	function getElementsByClass(className) {
+		return document.getElementsByClassName(removeSpaces(className))
+	}
+	// TODO: currently the game caluclates everything every update, which makes requirements responsible for both checking completeness and uncovering hidden elements,
+	// however, in the future it might be wiser to update only the unlocked entities and add elements as needed,
+	// separating the responsibility of updating UI from checking requirement completeness
 	gameData.requirements = {
 		//Other
 		"The Arcane Association"			: new TaskRequirement(	getElementsByClass(			"The Arcane Association"		),	[{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
@@ -7,14 +13,14 @@ function initializeRequirements() {
 		"Nobility"							: new TaskRequirement(	getElementsByClass(			"Nobility"						),	[{task: "Elite knight", requirement: 10}]),
 		"Dark magic"						: new EvilRequirement(	getElementsByClass(			"Dark magic"					),	[{requirement: 1}]),
 		"Shop"								: new CoinRequirement(	[document.getElementById(	"shopTabButton"					)],	[{requirement: gameData.itemData["Tent"].getExpense() * 50}]),
-		"Rebirth tab"						: new AgeRequirement(	[document.getElementById(	"rebirthTabButton"				)],	[{requirement: 25}]),
-		"Rebirth note 1"					: new AgeRequirement(	[document.getElementById(	"rebirthNote1"					)],	[{requirement: 45}]),
-		"Rebirth note 2"					: new AgeRequirement(	[document.getElementById(	"rebirthNote2"					)],	[{requirement: 65}]),
-		"Rebirth note 3"					: new AgeRequirement(	[document.getElementById(	"rebirthNote3"					)],	[{requirement: 200}]),
+		"Rebirth tab"						: new AgeRequirement(	[document.getElementById(	"rebirthTabButton"				)],	[{requirement: yearsToDays(25)}]),
+		"Rebirth note 1"					: new AgeRequirement(	[document.getElementById(	"rebirthNote1"					)],	[{requirement: yearsToDays(45)}]),
+		"Rebirth note 2"					: new AgeRequirement(	[document.getElementById(	"rebirthNote2"					)],	[{requirement: yearsToDays(65)}]),
+		"Rebirth note 3"					: new AgeRequirement(	[document.getElementById(	"rebirthNote3"					)],	[{requirement: yearsToDays(200)}]),
 		"Evil info"							: new EvilRequirement(	[document.getElementById(	"evilInfo"						)],	[{requirement: 1}]),
 		"Time warping info"					: new TaskRequirement(	[document.getElementById(	"timeWarping"					)],	[{task: "Mage", requirement: 10}]),
-		"Automation"						: new AgeRequirement(	[document.getElementById(	"automation"					)],	[{requirement: 20}]),
-		"Quick task display"				: new AgeRequirement(	[document.getElementById(	"quickTaskDisplay"				)],	[{requirement: 20}]),
+		"Automation"						: new AgeRequirement(	[document.getElementById(	"automation"					)],	[{requirement: yearsToDays(20)}]),
+		"Quick task display"				: new AgeRequirement(	[document.getElementById(	"quickTaskDisplay"				)],	[{requirement: yearsToDays(20)}]),
 	
 		//Common work
 		"Beggar"							: new TaskRequirement(	[getTaskElement(			"Beggar"						)],	[]),

@@ -19,10 +19,9 @@ class Task {
 	}
 
 	getMaxXp() {
-		var maxXp = Math.round(
+		return Math.round(
 			this.baseData.maxXp * (this.level + 1) * Math.pow(1.01, this.level)
 		);
-		return maxXp;
 	}
 
 	getXpLeft() {
@@ -30,8 +29,7 @@ class Task {
 	}
 
 	getMaxLevelMultiplier() {
-		var maxLevelMultiplier = 1 + this.maxLevel / 10;
-		return maxLevelMultiplier;
+		return 1 + this.maxLevel * .1;
 	}
 
 	getXpGain() {
@@ -41,7 +39,7 @@ class Task {
 	increaseXp() {
 		this.xp += applySpeed(this.getXpGain());
 		if (this.xp >= this.getMaxXp()) {
-			var excess = this.xp - this.getMaxXp();
+			let excess = this.xp - this.getMaxXp();
 			while (excess >= 0) {
 				this.level += 1;
 				excess -= this.getMaxXp();
@@ -58,8 +56,7 @@ class Job extends Task {
 	}
 
 	getLevelMultiplier() {
-		var levelMultiplier = 1 + Math.log10(this.level + 1);
-		return levelMultiplier;
+		return 1 + Math.log10(this.level + 1);
 	}
 
 	getIncome() {
@@ -73,15 +70,11 @@ class Skill extends Task {
 	}
 
 	getEffect() {
-		var effect = 1 + this.baseData.effect * this.level;
-		return effect;
+		return 1 + this.baseData.effect * this.level;
 	}
 
 	getEffectDescription() {
-		var description = this.baseData.description;
-		var text =
-			"x" + String(this.getEffect().toFixed(2)) + " " + description;
-		return text;
+		return "x" + String(this.getEffect().toFixed(2)) + " " + this.baseData.description;
 	}
 }
 
@@ -93,21 +86,14 @@ class Item {
 	}
 
 	getEffect() {
-		if (
-			gameData.currentProperty != this &&
-			!gameData.currentMisc.includes(this)
-		)
-			return 1;
-		var effect = this.baseData.effect;
-		return effect;
+		if (gameData.currentProperty == this || gameData.currentMisc.includes(this))
+			return this.baseData.effect;
+		return 1;
 	}
 
 	getEffectDescription() {
-		var description = this.baseData.description;
-		if (itemCategories["Properties"].includes(this.name))
-			description = "Happiness";
-		var text = "x" + this.baseData.effect.toFixed(1) + " " + description;
-		return text;
+		var description = itemCategories["Properties"].includes(this.name) ? "Happiness" : this.baseData.description;
+		return "x" + this.baseData.effect.toFixed(1) + " " + description;
 	}
 
 	getExpense() {
@@ -126,7 +112,7 @@ class Requirement {
 		if (this.completed) {
 			return true;
 		}
-		for (var requirement of this.requirements) {
+		for (let requirement of this.requirements) {
 			if (!this.getCondition(requirement)) {
 				return false;
 			}
@@ -167,7 +153,7 @@ class AgeRequirement extends Requirement {
 	}
 
 	getCondition(requirement) {
-		return daysToYears(gameData.days) >= requirement.requirement;
+		return gameData.days >= requirement.requirement;
 	}
 }
 
