@@ -1,5 +1,5 @@
 const permanentUnlocks = [
-	"Scheduling",
+	"Scheduling", // currently unused
 	"Shop",
 	"Automation",
 	"Quick task display"

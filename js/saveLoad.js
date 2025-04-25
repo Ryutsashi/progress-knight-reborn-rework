@@ -112,3 +112,95 @@ function downloadGameData() {
 		URL.revokeObjectURL(saveFile.href);
 	}
 }
+
+// TODO: implement saving, loading and integrity checks
+// currently unused
+function getSaveData() {
+	return {
+		taskData: getBasicTaskData(),
+		// useless, static data
+		// itemData: getBasicItemData(),
+		townData: getBasicTownData(),
+		// can be derived
+		// rawTownIncome: gameData.rawTownIncome,
+		coins: gameData.coins,
+		days: gameData.days,
+		evil: gameData.evil,
+		paused: gameData.paused,
+		timeWarpingEnabled: gameData.timeWarpingEnabled,
+		rebirthOneCount: gameData.rebirthOneCount,
+		rebirthTwoCount: gameData.rebirthTwoCount,
+		currentJob: getBasicJobData(),
+		currentSkill: getBasicSkillData(),
+		currentProperty: gameData.currentProperty.name,
+		currentMisc: getBasicMiscData(),
+		requirements: getBasicRequirementsData(),
+		totalCitizens: gameData.totalCitizens,
+		assignedCitizens: gameData.assignedCitizens,
+		idleCitizens: gameData.idleCitizens,
+		autoPromote: gameData.autoPromote,
+		autoLearn: gameData.autoLearn,
+		// TODO: this might need reworking
+		skippedSkills: gameData.skippedSkills,
+		darkMode: gameData.darkMode,
+		version: gameData.version
+	}
+}
+
+function getBasicTaskData() {
+	let jobs = Object.values(jobCategories).map(categoryEntries => 
+		categoryEntries.map(getBasicJobData)
+	);
+	let skills = Object.values(skillCategories).map(categoryEntries => 
+		categoryEntries.map(getBasicSkillData)
+	);
+	return Object.assign(...jobs, ...skills);
+}
+
+function getBasicTownData() {
+	let town = Object.keys(gameData.townData).map(getBasicBuildingData);
+	return Object.assign(...town);
+}
+
+function getBasicBuildingData(buildingKey) {
+	return {
+		[buildingKey]: {
+			count: gameData.townData[buildingKey].count
+		}
+	}
+}
+
+function getBasicJobData(jobKey) {
+	return {
+		[jobKey]: {
+			level: gameData.taskData[jobKey].level,
+			maxLevel: gameData.taskData[jobKey].maxLevel,
+			xp: gameData.taskData[jobKey].xp
+		}
+	}
+}
+
+function getBasicSkillData(skillKey) {
+	return {
+		[skillKey]: {
+			level: gameData.taskData[skillKey].level,
+			maxLevel: gameData.taskData[skillKey].maxLevel,
+			xp: gameData.taskData[skillKey].xp
+		}
+	}
+}
+
+function getBasicMiscData() {
+	return gameData.currentMisc.map(misc => misc.name);
+}
+
+function getBasicRequirementsData() {
+	let requirements = Object.entries(gameData.requirements).map(([requirementKey, requirement]) => {
+		return {
+			[requirementKey]: {
+				completed: requirement.completed
+			}
+		}
+	});
+	return Object.assign(...requirements);
+}
