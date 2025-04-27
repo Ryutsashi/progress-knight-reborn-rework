@@ -115,7 +115,7 @@ function downloadGameData() {
 
 // TODO: implement saving, loading and integrity checks
 // currently unused
-function getSaveData() {
+function getGameStateSnapshot() {
 	return {
 		taskData: getBasicTaskData(),
 		// useless, static data
