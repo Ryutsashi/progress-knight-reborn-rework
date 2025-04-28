@@ -922,6 +922,21 @@ function update() {
 //#endregion
 
 //#region init methods
+
+function registerEventListeners() {
+	let woodenHutButton = document.getElementById("woodenHut");
+	woodenHutButton.addEventListener("click", o_townBuildingsContainer.o_woodenHut.handleClick);
+	woodenHutButton.addEventListener("mouseenter", updateTooltip);
+
+	let farmButton = document.getElementById("farm");
+	farmButton.addEventListener("click", o_townBuildingsContainer.o_farm.handleClick);
+	farmButton.addEventListener("mouseenter", updateTooltip);
+
+	let grainShedButton = document.getElementById("grainShed");
+	grainShedButton.addEventListener("click", o_townBuildingsContainer.o_grainShed.handleClick);
+	grainShedButton.addEventListener("mouseenter", updateTooltip);
+}
+
 function initCustomEffects() {
 	let bargaining = gameData.taskData["Bargaining"];
 	bargaining.getEffect = () => Math.max(0.1, 1 - getBaseLog(7, bargaining.level + 1) / 10);
@@ -946,86 +961,6 @@ function initCustomEffects() {
 
 	let immortality = gameData.taskData["Immortality"];
 	immortality.getEffect = () => 1 + getBaseLog(33, immortality.level + 1);
-}
-
-function createData(data, baseData) {
-	Object.values(baseData).forEach(entity => createEntity(data, entity));
-}
-
-function createEntity(data, entity) {
-	if ("income" in entity) {
-		data[entity.name] = new Job(entity);
-	} else if ("maxXp" in entity) {
-		data[entity.name] = new Skill(entity);
-	} else {
-		data[entity.name] = new Item(entity);
-	}
-	data[entity.name].id = "row " + entity.name;
-}
-
-function createItemData(baseData) {
-	for (let item of baseData) {
-		gameData.itemData[item.name] = new ("happiness" in item ? Property : Misc)(task);
-		gameData.itemData[item.name].id = "item " + item.name;
-	}
-}
-
-function assignMethods() {
-	Object.entries(gameData.taskData).forEach(([taskKey, task]) => {
-		if (task.baseData.income) {
-			task.baseData = jobBaseData[task.name];
-			gameData.taskData[taskKey] = Object.assign(new Job(jobBaseData[task.name]), task);
-		} else {
-			task.baseData = skillBaseData[task.name];
-			gameData.taskData[taskKey] = Object.assign(new Skill(skillBaseData[task.name]), task);
-		}
-	})
-
-	Object.entries(gameData.itemData).forEach(([itemKey, item]) => {
-		item.baseData = itemBaseData[item.name];
-		gameData.itemData[itemKey] = Object.assign(new Item(itemBaseData[item.name]), item);
-	});
-
-	const REQUIREMENT_CLASS = {
-		task: TaskRequirement,
-		coins: CoinRequirement,
-		age: AgeRequirement,
-		evil: EvilRequirement
-	}
-
-	for (let key in gameData.requirements) {
-		let requirement = gameData.requirements[key];
-		requirement = Object.assign(
-			new REQUIREMENT_CLASS[requirement.type](
-				requirement.elements,
-				requirement.requirements
-			),
-			requirement
-		);
-		let tempRequirement = tempData["requirements"][key];
-		requirement.elements = tempRequirement.elements;
-		requirement.requirements = tempRequirement.requirements;
-		gameData.requirements[key] = requirement;
-	}
-
-	gameData.currentJob = gameData.taskData[gameData.currentJob.name];
-	gameData.currentSkill = gameData.taskData[gameData.currentSkill.name];
-	gameData.currentProperty = gameData.itemData[gameData.currentProperty.name];
-	gameData.currentMisc = gameData.currentMisc.map(misc => gameData.itemData[misc.name]);
-}
-
-function registerEventListeners() {
-	let woodenHutButton = document.getElementById("woodenHut");
-	woodenHutButton.addEventListener("click", o_townBuildingsContainer.o_woodenHut.handleClick);
-	woodenHutButton.addEventListener("mouseenter", updateTooltip);
-
-	let farmButton = document.getElementById("farm");
-	farmButton.addEventListener("click", o_townBuildingsContainer.o_farm.handleClick);
-	farmButton.addEventListener("mouseenter", updateTooltip);
-
-	let grainShedButton = document.getElementById("grainShed");
-	grainShedButton.addEventListener("click", o_townBuildingsContainer.o_grainShed.handleClick);
-	grainShedButton.addEventListener("mouseenter", updateTooltip);
 }
 
 /*
@@ -1056,16 +991,18 @@ document.addEventListener("DOMContentLoaded", () => {
 	createAllRows(skillCategories, "skillTable");
 	createAllRows(itemCategories, "itemTable");
 
-	createData(gameData.taskData, jobBaseData);
-	createData(gameData.taskData, skillBaseData);
-	createData(gameData.itemData, itemBaseData);
+	gameData.taskData = {};
+	Object.assign(gameData.taskData, createData(jobBaseData));
+	Object.assign(gameData.taskData, createData(skillBaseData));
+	gameData.itemData = {};
+	Object.assign(gameData.itemData, createData(itemBaseData));
 
 	gameData.currentJob = gameData.taskData["Beggar"];
 	gameData.currentSkill = gameData.taskData["Concentration"];
 	gameData.currentProperty = gameData.itemData["Homeless"];
 	gameData.currentMisc = [];
 
-	initializeRequirements();
+	gameData.requirements = initializeRequirements(gameData);
 
 	loadGameData();
 	bindObjectFunctionContexts();

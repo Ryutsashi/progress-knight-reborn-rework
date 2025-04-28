@@ -113,6 +113,82 @@ function downloadGameData() {
 	}
 }
 
+//#region game state initialization methods
+function createData(baseData) {
+	return Object.values(baseData).reduce((obj, entity) =>
+		Object.assign(
+			obj,
+			{ [entity.name]: createEntity(entity) }
+		),
+		{}
+	);
+}
+
+function createEntity(entity) {
+	let data;
+	if ("income" in entity) {
+		data = new Job(entity);
+	} else if ("maxXp" in entity) {
+		data = new Skill(entity);
+	} else {
+		data = new Item(entity);
+	}
+	data.id = "row " + entity.name;
+	return data;
+}
+
+function createItemData(baseData) {
+	for (let item of baseData) {
+		gameData.itemData[item.name] = new ("happiness" in item ? Property : Misc)(task);
+		gameData.itemData[item.name].id = "item " + item.name;
+	}
+}
+
+function assignMethods() {
+	Object.entries(gameData.taskData).forEach(([taskKey, task]) => {
+		if (task.baseData.income) {
+			task.baseData = jobBaseData[task.name];
+			gameData.taskData[taskKey] = Object.assign(new Job(jobBaseData[task.name]), task);
+		} else {
+			task.baseData = skillBaseData[task.name];
+			gameData.taskData[taskKey] = Object.assign(new Skill(skillBaseData[task.name]), task);
+		}
+	})
+
+	Object.entries(gameData.itemData).forEach(([itemKey, item]) => {
+		item.baseData = itemBaseData[item.name];
+		gameData.itemData[itemKey] = Object.assign(new Item(itemBaseData[item.name]), item);
+	});
+
+	const REQUIREMENT_CLASS = {
+		task: TaskRequirement,
+		coins: CoinRequirement,
+		age: AgeRequirement,
+		evil: EvilRequirement
+	}
+
+	for (let key in gameData.requirements) {
+		let requirement = gameData.requirements[key];
+		requirement = Object.assign(
+			new REQUIREMENT_CLASS[requirement.type](
+				requirement.elements,
+				requirement.requirements
+			),
+			requirement
+		);
+		let tempRequirement = tempData["requirements"][key];
+		requirement.elements = tempRequirement.elements;
+		requirement.requirements = tempRequirement.requirements;
+		gameData.requirements[key] = requirement;
+	}
+
+	gameData.currentJob = gameData.taskData[gameData.currentJob.name];
+	gameData.currentSkill = gameData.taskData[gameData.currentSkill.name];
+	gameData.currentProperty = gameData.itemData[gameData.currentProperty.name];
+	gameData.currentMisc = gameData.currentMisc.map(misc => gameData.itemData[misc.name]);
+}
+//#endregion
+
 // TODO: implement saving, loading and integrity checks
 // currently unused
 function getGameStateSnapshot() {
@@ -130,17 +206,17 @@ function getGameStateSnapshot() {
 		timeWarpingEnabled: gameData.timeWarpingEnabled,
 		rebirthOneCount: gameData.rebirthOneCount,
 		rebirthTwoCount: gameData.rebirthTwoCount,
-		currentJob: getBasicJobData(),
-		currentSkill: getBasicSkillData(),
+		currentJob: gameData.currentJob.name,
+		currentSkill: gameData.currentSkill.name,
 		currentProperty: gameData.currentProperty.name,
-		currentMisc: getBasicMiscData(),
+		currentMisc: gameData.currentMisc.map(misc => misc.name),
 		requirements: getBasicRequirementsData(),
 		totalCitizens: gameData.totalCitizens,
 		assignedCitizens: gameData.assignedCitizens,
 		idleCitizens: gameData.idleCitizens,
 		autoPromote: gameData.autoPromote,
 		autoLearn: gameData.autoLearn,
-		// TODO: this might need reworking
+		// TODO: this can be derived if we just store the data in the skill itself, which would likely be preferred over keeping it in different places
 		skippedSkills: gameData.skippedSkills,
 		darkMode: gameData.darkMode,
 		version: gameData.version
@@ -203,4 +279,91 @@ function getBasicRequirementsData() {
 		}
 	});
 	return Object.assign(...requirements);
+}
+
+function createGameStateFromSnapshot(snapshot) {
+	let numberStates = {
+		coins: Number(snapshot.coins),
+		days: Number(snapshot.days),
+		evil: Number(snapshot.evil),
+		timeWarpingEnabled: snapshot.timeWarpingEnabled,
+		rebirthOneCount: Number(snapshot.rebirthOneCount),
+		rebirthTwoCount: Number(snapshot.rebirthTwoCount),
+		totalCitizens: Number(snapshot.totalCitizens),
+		assignedCitizens: Number(snapshot.assignedCitizens),
+		idleCitizens: Number(snapshot.idleCitizens),
+	}
+	let boolStates = {
+		paused: snapshot.paused,
+		autoPromote: snapshot.autoPromote,
+		darkMode: snapshot.darkMode,
+		autoLearn: snapshot.autoLearn,
+		// TODO: this can be derived if we just store the data in the skill itself, which would likely be preferred over keeping it in different places
+		skippedSkills: snapshot.skippedSkills,
+	}
+	// Pass 1: create the objects
+	let objectStates = {
+		taskData: createTasks(snapshot.taskData),
+		itemData: createItems(),
+		townData: createTownBuildings(snapshot.townData),
+		// in the current data structure requirements are created at the same time as they pull data from referenced tasks
+		// requirements: createRequirements(),
+	}
+	// Pass 2: bind reference values
+	objectStates = {
+		taskData: bindTaskReferences(objectStates),
+		itemData: bindItemReferences(objectStates),
+		// in the current data structure nothing is referenced by a building as stored inside gameData.townData
+		// townData: bindTownBuildingReferences(objectStates),
+		// this also creates requirements, for now...
+		requirements: bindRequirementReferences(objectStates),
+	}
+	
+	let currentReferences = {
+		currentJob: getTaskByName(snapshot.currentJob, objectStates.taskData),
+		currentSkill: getTaskByName(snapshot.currentSkill, objectStates.taskData),
+		currentMisc: snapshot.currentMisc.map(misc => getMiscByName(misc, objectStates.itemData)),
+		currentProperty: getMiscByName(snapshot.currentProperty, objectStates.itemData),
+	}
+
+	return Object.assign(
+		{
+			version: snapshot.version,
+			rawTownIncome: updateRawTownIncome()
+		},
+		numberStates,
+		boolStates,
+		objectStates,
+		currentReferences
+	);
+}
+
+function createTasks(taskData) {
+	let tasks = createData(taskData);
+	return tasks;
+}
+
+function createItems() {
+	return createData(itemBaseData);
+}
+
+function bindTaskReferences(objects) {
+	for (let task of objects.taskData) {
+		// bind xp and income multipliers
+	}
+}
+
+function bindItemReferences(objects) {
+	for (let item of objects.taskData) {
+		// bind xp multipliers
+	}
+}
+
+function bindRequirementReferences(objects) {
+	// TODO: this is temporary
+	let requirements = initializeRequirements(objects);
+	for (let requirement in objects.requirements) {
+		requirements[requirement].completed = objects.requirements[requirement].completed;
+	}
+	return requirements;
 }

@@ -72,5 +72,16 @@ const migrationsRecord = [
 		update: (saveFileData) => {
 			// just a test update, the version bump in the file itself is handled automatically for each version
 		}
-	}
+	},
+	// preparation for 0.4.2
+	// {
+	// 	version: "0.4.2",
+	// 	update: (saveFileData) => {
+	// 		return Object.assign(saveFileData, {
+	// 			currentJob : saveFileData.currentJob.name,
+	// 			currentSkill : saveFileData.currentSkill.name,
+	// 			currentMisc : saveFileData.currentMisc.map(misc => misc.name),
+	// 		}
+	// 	}
+	// }
 ]

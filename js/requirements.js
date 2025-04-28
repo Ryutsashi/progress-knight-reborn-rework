@@ -1,18 +1,18 @@
-function initializeRequirements() {
+function initializeRequirements(stateData) {
 
 	function getElementsByClass(className) {
-		return document.getElementsByClassName(removeSpaces(className))
+		return document.getElementsByClassName(removeSpaces(className));
 	}
 	// TODO: currently the game caluclates everything every update, which makes requirements responsible for both checking completeness and uncovering hidden elements,
 	// however, in the future it might be wiser to update only the unlocked entities and add elements as needed,
 	// separating the responsibility of updating UI from checking requirement completeness
-	gameData.requirements = {
+	requirements = {
 		//Other
 		"The Arcane Association"			: new TaskRequirement(	getElementsByClass(			"The Arcane Association"		),	[{task: "Concentration", requirement: 200}, {task: "Meditation", requirement: 200}]),
 		//"Mind"							: new TaskRequirement(	getElementsByClass(			"Mind"							),	[{task: "Concentration", requirement: 700}, {task: "Meditation", requirement: 700}]),
 		"Nobility"							: new TaskRequirement(	getElementsByClass(			"Nobility"						),	[{task: "Elite knight", requirement: 10}]),
 		"Dark magic"						: new EvilRequirement(	getElementsByClass(			"Dark magic"					),	[{requirement: 1}]),
-		"Shop"								: new CoinRequirement(	[document.getElementById(	"shopTabButton"					)],	[{requirement: gameData.itemData["Tent"].getExpense() * 50}]),
+		"Shop"								: new CoinRequirement(	[document.getElementById(	"shopTabButton"					)],	[{requirement: stateData.itemData["Tent"].getExpense() * 50}]),
 		"Rebirth tab"						: new AgeRequirement(	[document.getElementById(	"rebirthTabButton"				)],	[{requirement: yearsToDays(25)}]),
 		"Rebirth note 1"					: new AgeRequirement(	[document.getElementById(	"rebirthNote1"					)],	[{requirement: yearsToDays(45)}]),
 		"Rebirth note 2"					: new AgeRequirement(	[document.getElementById(	"rebirthNote2"					)],	[{requirement: yearsToDays(65)}]),
@@ -110,24 +110,24 @@ function initializeRequirements() {
 		//Properties
 		"Homeless"							: new CoinRequirement(	[getItemElement(			"Homeless"						)],	[{requirement: 0}]),
 		"Tent"								: new CoinRequirement(	[getItemElement(			"Tent"							)],	[{requirement: 0}]),
-		"Wooden hut"						: new CoinRequirement(	[getItemElement(			"Wooden hut"					)],	[{requirement: gameData.itemData["Wooden hut"].getExpense() * 100}]),
-		"Cottage"							: new CoinRequirement(	[getItemElement(			"Cottage"						)],	[{requirement: gameData.itemData["Cottage"].getExpense() * 100}]),
-		"House"								: new CoinRequirement(	[getItemElement(			"House"							)],	[{requirement: gameData.itemData["House"].getExpense() * 100}]),
-		"Large house"						: new CoinRequirement(	[getItemElement(			"Large house"					)],	[{requirement: gameData.itemData["Large house"].getExpense() * 100}]),
-		"Small Manor"						: new CoinRequirement(	[getItemElement(			"Small Manor"					)],	[{requirement: gameData.itemData["Small Manor"].getExpense() * 100}]),
-		"Small palace"						: new CoinRequirement(	[getItemElement(			"Small palace"					)],	[{requirement: gameData.itemData["Small palace"].getExpense() * 100}]),
-		"Grand palace"						: new CoinRequirement(	[getItemElement(			"Grand palace"					)],	[{requirement: gameData.itemData["Grand palace"].getExpense() * 100}]),
+		"Wooden hut"						: new CoinRequirement(	[getItemElement(			"Wooden hut"					)],	[{requirement: stateData.itemData["Wooden hut"].getExpense() * 100}]),
+		"Cottage"							: new CoinRequirement(	[getItemElement(			"Cottage"						)],	[{requirement: stateData.itemData["Cottage"].getExpense() * 100}]),
+		"House"								: new CoinRequirement(	[getItemElement(			"House"							)],	[{requirement: stateData.itemData["House"].getExpense() * 100}]),
+		"Large house"						: new CoinRequirement(	[getItemElement(			"Large house"					)],	[{requirement: stateData.itemData["Large house"].getExpense() * 100}]),
+		"Small Manor"						: new CoinRequirement(	[getItemElement(			"Small Manor"					)],	[{requirement: stateData.itemData["Small Manor"].getExpense() * 100}]),
+		"Small palace"						: new CoinRequirement(	[getItemElement(			"Small palace"					)],	[{requirement: stateData.itemData["Small palace"].getExpense() * 100}]),
+		"Grand palace"						: new CoinRequirement(	[getItemElement(			"Grand palace"					)],	[{requirement: stateData.itemData["Grand palace"].getExpense() * 100}]),
 	
 		//Misc
 		"Book"								: new CoinRequirement(	[getItemElement(			"Book"							)],	[{requirement: 0}]),
 		"Rag Clothing"						: new CoinRequirement(	[getItemElement(			"Rag Clothing"					)],	[{requirement: 10}]),
-		"Dumbbells"							: new CoinRequirement(	[getItemElement(			"Dumbbells"						)],	[{requirement: gameData.itemData["Dumbbells"].getExpense() * 100}]),
-		"Personal squire"					: new CoinRequirement(	[getItemElement(			"Personal squire"				)],	[{requirement: gameData.itemData["Personal squire"].getExpense() * 100}]),
-		"Steel longsword"					: new CoinRequirement(	[getItemElement(			"Steel longsword"				)],	[{requirement: gameData.itemData["Steel longsword"].getExpense() * 100}]),
-		"Butler"							: new CoinRequirement(	[getItemElement(			"Butler"						)],	[{requirement: gameData.itemData["Butler"].getExpense() * 100}]),
-		"Sapphire charm"					: new CoinRequirement(	[getItemElement(			"Sapphire charm"				)],	[{requirement: gameData.itemData["Sapphire charm"].getExpense() * 100}]),
-		"Study desk"						: new CoinRequirement(	[getItemElement(			"Study desk"					)],	[{requirement: gameData.itemData["Study desk"].getExpense() * 100}]),
-		"Library"							: new CoinRequirement(	[getItemElement(			"Library"						)],	[{requirement: gameData.itemData["Library"].getExpense() * 100}]), 
+		"Dumbbells"							: new CoinRequirement(	[getItemElement(			"Dumbbells"						)],	[{requirement: stateData.itemData["Dumbbells"].getExpense() * 100}]),
+		"Personal squire"					: new CoinRequirement(	[getItemElement(			"Personal squire"				)],	[{requirement: stateData.itemData["Personal squire"].getExpense() * 100}]),
+		"Steel longsword"					: new CoinRequirement(	[getItemElement(			"Steel longsword"				)],	[{requirement: stateData.itemData["Steel longsword"].getExpense() * 100}]),
+		"Butler"							: new CoinRequirement(	[getItemElement(			"Butler"						)],	[{requirement: stateData.itemData["Butler"].getExpense() * 100}]),
+		"Sapphire charm"					: new CoinRequirement(	[getItemElement(			"Sapphire charm"				)],	[{requirement: stateData.itemData["Sapphire charm"].getExpense() * 100}]),
+		"Study desk"						: new CoinRequirement(	[getItemElement(			"Study desk"					)],	[{requirement: stateData.itemData["Study desk"].getExpense() * 100}]),
+		"Library"							: new CoinRequirement(	[getItemElement(			"Library"						)],	[{requirement: stateData.itemData["Library"].getExpense() * 100}]), 
 		"Small Field"						: new TaskRequirement(	[getItemElement(			"Small Field"					)],	[{task: "Farmer", requirement: 25}]),
 		"Basic Farm Tools"					: new TaskRequirement(	[getItemElement(			"Basic Farm Tools"				)],	[{task: "Farmer", requirement: 10}]),
 		"Cheap Fishing Rod"					: new TaskRequirement(	[getItemElement(			"Cheap Fishing Rod"				)],	[{task: "Fisherman", requirement: 10}]),
@@ -141,5 +141,7 @@ function initializeRequirements() {
 		"Livestock-derived Fertilizer"		: new TaskRequirement(	[getItemElement(			"Livestock-derived Fertilizer"	)],	[{task: "Farmer", requirement: 85}]),
 	}
 	
-	tempData["requirements"] = Object.assign({}, gameData.requirements);
+	tempData["requirements"] = Object.assign({}, requirements);
+	
+	return requirements;
 };
