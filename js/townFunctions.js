@@ -9,13 +9,13 @@
 //  variable.
 function updateRawTownIncome() {
 	//console.log("testing updateRawTownIncome function. We are inside the function now.");
-	var totalIncome = 0;
+	let totalIncome = 0;
 	//console.log("totalIncome: " + totalIncome);
 	//console.log("Starting for loop...");
-	for (building in o_townBuildingsContainer) {
+	for (let building in o_townBuildingsContainer) {
 		//console.log("key: " + building);
 		//building represents the key, so we use it to get a reference to the actual object
-		var o_building = o_townBuildingsContainer[building];
+		let o_building = o_townBuildingsContainer[building];
 		//console.log("value: " + o_building);
 		if ("income" in o_building) {
 			//console.log("Income is detected in " + o_building.name + " building.");
@@ -31,9 +31,9 @@ function updateRawTownIncome() {
 			 *   due to nested for loops and their O(n^2) behavior.
 			 */
 			if (o_building.name === "Farm") {
-				var multiplier = 1.0;
-				for (building2 in o_townBuildingsContainer) {
-					var o_building2 = o_townBuildingsContainer[building2];
+				let multiplier = 1.0;
+				for (let building2 in o_townBuildingsContainer) {
+					let o_building2 = o_townBuildingsContainer[building2];
 					if (
 						"role" in o_building2 &&
 						o_building2.role.includes("Income Boost")
@@ -65,11 +65,11 @@ function updateRawTownIncome() {
 function saveTownState() {
 	ifVerboseLoggingSay("saving town state...");
 
-	for (building in o_townBuildingsContainer) {
+	for (let building in o_townBuildingsContainer) {
 		ifVerboseLoggingSay("key: ", building);
-		var o_building = o_townBuildingsContainer[building];
+		let o_building = o_townBuildingsContainer[building];
 		ifVerboseLoggingSay("value: ", o_building);
-		var saveObject = {
+		let saveObject = {
 			name: o_building.name,
 			count: o_building.count,
 			costOfNextBuilding: o_building.costOfNextBuilding
@@ -82,10 +82,10 @@ function saveTownState() {
 }
 
 function loadTownState() {
-	for (building in o_townBuildingsContainer) {
-		var o_building = o_townBuildingsContainer[building];
+	for (let building in o_townBuildingsContainer) {
+		let o_building = o_townBuildingsContainer[building];
 		if (o_building.name in gameData.townData) {
-			var savedBuilding = gameData.townData[o_building.name];
+			let savedBuilding = gameData.townData[o_building.name];
 			o_building.count = savedBuilding.count;
 			o_building.costOfNextBuilding = savedBuilding.costOfNextBuilding;
 		}
@@ -96,10 +96,10 @@ function destroyTownWhileEmbracingEvil() {
 	//reset values in o_townBuildingContainer to their base values
 	//reset values in gameData.townData, if it is not null, to their base values
 	if (gameData.townData) {
-		for (building in o_townBuildingsContainer) {
-			var o_building = o_townBuildingsContainer[building];
+		for (let building in o_townBuildingsContainer) {
+			let o_building = o_townBuildingsContainer[building];
 			if (o_building.name in gameData.townData) {
-				var savedBuilding = gameData.townData[o_building.name];
+				let savedBuilding = gameData.townData[o_building.name];
 				savedBuilding.count = o_building.count = 0;
 				o_building.costOfNextBuilding =
 					savedBuilding.costOfNextBuilding = o_building.baseCost;
@@ -110,10 +110,10 @@ function destroyTownWhileEmbracingEvil() {
 }
 
 function testSuccessOfTownDestruction() {
-	for (building in o_townBuildingsContainer) {
-		var o_building = o_townBuildingsContainer[building];
+	for (let building in o_townBuildingsContainer) {
+		let o_building = o_townBuildingsContainer[building];
 		if (o_building.name in gameData.townData) {
-			var savedBuilding = gameData.townData[o_building.name];
+			let savedBuilding = gameData.townData[o_building.name];
 			ifVerboseLoggingSay(
 				`Type of Saved Count: ${typeof savedBuilding.count}\n`,
 				`${o_building.name} Saved count: ${savedBuilding.count}\n`,

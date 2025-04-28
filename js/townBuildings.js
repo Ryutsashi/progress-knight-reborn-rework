@@ -4,12 +4,12 @@
  * and automates some linking of new buildings to game logic.
  */
 
-var o_townBuildingsContainer = {
+let o_townBuildingsContainer = {
 	o_woodenHut: {
 		name: "Wooden Hut",
 		id: "woodenHut",
 		count: 0,
-		baseCost: 100000000001, //treat as const
+		baseCost: { get : () => 100000000001 }, //treat as const.
 		costOfNextBuilding: 100000000001,
 		costGrowthFactor: 1.01,
 		role: ["Housing"],
@@ -36,7 +36,7 @@ var o_townBuildingsContainer = {
 		name: "Farm",
 		id: "farm",
 		count: 0,
-		baseCost: 1000000000001, //treat as const
+		baseCost: { get : () => 1000000000001 }, //treat as const
 		costOfNextBuilding: 1000000000001,
 		costGrowthFactor: 1.05,
 		role: ["Food", "Income", "Prestige", "Nobility xp"],
@@ -68,7 +68,7 @@ var o_townBuildingsContainer = {
 		name: "Grain Shed",
 		id: "grainShed",
 		count: 0,
-		baseCost: 100000000001, //treat as const
+		baseCost: { get : () => 100000000001 }, //treat as const
 		costOfNextBuilding: 100000000001,
 		costGrowthFactor: 1.07,
 		role: ["Food", "Income Boost"],
