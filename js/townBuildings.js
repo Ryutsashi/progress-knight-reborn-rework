@@ -16,15 +16,12 @@ let o_townBuildingsContainer = {
 		citizenCapacity: 2,
 
 		handleClick: function (eventObject) {
-			if (gameData.coins >= this.costOfNextBuilding) {
-				gameData.coins -= this.costOfNextBuilding;
-				ifVerboseLoggingSay(`Inside handleClick(). This.count: ${this.count}`);
-				this.count += 1;
-				ifVerboseLoggingSay(`Post-increment. This.count: ${this.count}`);
-				this.costOfNextBuilding *= this.costGrowthFactor;
-			} else {
-				return;
-			}
+			if (gameData.coins < this.costOfNextBuilding) return;
+
+			gameData.coins -= this.costOfNextBuilding;
+			this.count++;
+			this.costOfNextBuilding = this.costOfNextBuilding*(this.costGrowthFactor**this.count);
+
 			gameData.totalCitizens += this.citizenCapacity;
 			updateIdleCitizens();
 
@@ -44,11 +41,12 @@ let o_townBuildingsContainer = {
 		income: 150, //1s 50c
 
 		handleClick: function (eventObject) {
-			if (gameData.coins >= this.costOfNextBuilding) {
-				gameData.coins -= this.costOfNextBuilding;
-				this.count++;
-				this.costOfNextBuilding *= this.costGrowthFactor;
-			}
+			if (gameData.coins < this.costOfNextBuilding) return;
+
+			
+			gameData.coins -= this.costOfNextBuilding;
+			this.count++;
+			this.costOfNextBuilding = this.costOfNextBuilding*(this.costGrowthFactor**this.count);
 
 			//global function, lives in townFunctions.js
 			gameData.rawTownIncome = updateRawTownIncome();
@@ -76,11 +74,11 @@ let o_townBuildingsContainer = {
 		incomeMultiplier: 1.06,
 
 		handleClick: function (eventObject) {
-			if (gameData.coins >= this.costOfNextBuilding) {
-				gameData.coins -= this.costOfNextBuilding;
-				this.count++;
-				this.costOfNextBuilding *= this.costGrowthFactor;
-			}
+			if (gameData.coins < this.costOfNextBuilding) return;
+
+			gameData.coins -= this.costOfNextBuilding;
+			this.count++;
+			this.costOfNextBuilding = this.costOfNextBuilding*(this.costGrowthFactor**this.count);
 
 			//global function, lives in townFunctions.js
 			gameData.rawTownIncome = updateRawTownIncome();

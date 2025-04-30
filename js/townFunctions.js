@@ -83,12 +83,7 @@ function saveTownState() {
 
 function loadTownState() {
 	for (let building in o_townBuildingsContainer) {
-		let o_building = o_townBuildingsContainer[building];
-		if (o_building.name in gameData.townData) {
-			let savedBuilding = gameData.townData[o_building.name];
-			o_building.count = savedBuilding.count;
-			o_building.costOfNextBuilding = savedBuilding.costOfNextBuilding;
-		}
+		o_townBuildingsContainer[building].count = gameData.townData[o_townBuildingsContainer[building].name]?.count;
 	}
 }
 
