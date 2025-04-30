@@ -1,13 +1,9 @@
 function updateTooltip(eventObject) {
-	let tooltipId = `tooltip-${eventObject.currentTarget.id}`;
-	var tooltipElement = document.querySelector("#" + tooltipId);
+	let key = eventObject.currentTarget.dataset.tooltipId;
 	
-	let newBuildingCost =
-		townBaseData[`o_${eventObject.currentTarget.id}`]
-			.costOfNextBuilding;
-			
-	let buildingID = tooltipId.replace("tooltip-", "");
-	let coinSpanId = `#coins-${buildingID}`;
-	let coinSpan = document.querySelector(coinSpanId);
+	let newBuildingCost = townBaseData[key].costOfNextBuilding;
+
+	let coinSpan = document.getElementById(`coins-${key}`);
+
 	formatCoins(newBuildingCost, coinSpan);
 }

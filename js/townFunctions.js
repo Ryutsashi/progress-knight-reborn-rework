@@ -12,10 +12,10 @@ function updateRawTownIncome() {
 	let totalIncome = 0;
 	//console.log("totalIncome: " + totalIncome);
 	//console.log("Starting for loop...");
-	for (let building in o_townBuildingsContainer) {
+	for (let building in townBaseData) {
 		//console.log("key: " + building);
 		//building represents the key, so we use it to get a reference to the actual object
-		let o_building = o_townBuildingsContainer[building];
+		let o_building = townBaseData[building];
 		//console.log("value: " + o_building);
 		if ("income" in o_building) {
 			//console.log("Income is detected in " + o_building.name + " building.");
@@ -32,8 +32,8 @@ function updateRawTownIncome() {
 			 */
 			if (o_building.name === "Farm") {
 				let multiplier = 1.0;
-				for (let building2 in o_townBuildingsContainer) {
-					let o_building2 = o_townBuildingsContainer[building2];
+				for (let building2 in townBaseData) {
+					let o_building2 = townBaseData[building2];
 					if (
 						"role" in o_building2 &&
 						o_building2.role.includes("Income Boost")
@@ -65,9 +65,9 @@ function updateRawTownIncome() {
 function saveTownState() {
 	ifVerboseLoggingSay("saving town state...");
 
-	for (let building in o_townBuildingsContainer) {
+	for (let building in townBaseData) {
 		ifVerboseLoggingSay("key: ", building);
-		let o_building = o_townBuildingsContainer[building];
+		let o_building = townBaseData[building];
 		ifVerboseLoggingSay("value: ", o_building);
 		let saveObject = {
 			name: o_building.name,
@@ -82,8 +82,8 @@ function saveTownState() {
 }
 
 function loadTownState() {
-	for (let building in o_townBuildingsContainer) {
-		o_townBuildingsContainer[building].count = gameData.townData[o_townBuildingsContainer[building].name]?.count;
+	for (let building in townBaseData) {
+		townBaseData[building].count = gameData.townData[townBaseData[building].name]?.count;
 	}
 }
 
@@ -91,8 +91,8 @@ function destroyTownWhileEmbracingEvil() {
 	//reset values in o_townBuildingContainer to their base values
 	//reset values in gameData.townData, if it is not null, to their base values
 	if (gameData.townData) {
-		for (let building in o_townBuildingsContainer) {
-			let o_building = o_townBuildingsContainer[building];
+		for (let building in townBaseData) {
+			let o_building = townBaseData[building];
 			if (o_building.name in gameData.townData) {
 				let savedBuilding = gameData.townData[o_building.name];
 				savedBuilding.count = o_building.count = 0;
@@ -105,8 +105,8 @@ function destroyTownWhileEmbracingEvil() {
 }
 
 function testSuccessOfTownDestruction() {
-	for (let building in o_townBuildingsContainer) {
-		let o_building = o_townBuildingsContainer[building];
+	for (let building in townBaseData) {
+		let o_building = townBaseData[building];
 		if (o_building.name in gameData.townData) {
 			let savedBuilding = gameData.townData[o_building.name];
 			ifVerboseLoggingSay(

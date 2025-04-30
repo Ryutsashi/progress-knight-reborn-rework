@@ -749,14 +749,14 @@ function updateText() {
 	document.getElementById("timeWarpingButton").textContent = gameData.timeWarpingEnabled ? "Disable warp" : "Enable warp";
 
 	function updateBuildingBadges() {
-		var woodenHutButton = document.getElementById("woodenHut");
-		woodenHutButton.children[0].innerHTML = o_townBuildingsContainer.o_woodenHut.count;
+		var woodenHutButton = document.getElementById("Wooden Hut");
+		woodenHutButton.children[0].innerHTML = townBaseData["Wooden Hut"].count;
 
-		var farmButton = document.getElementById("farm");
-		farmButton.children[0].innerHTML = o_townBuildingsContainer.o_farm.count;
+		var farmButton = document.getElementById("Farm");
+		farmButton.children[0].innerHTML = townBaseData["Farm"].count;
 
-		var grainShedButton = document.getElementById("grainShed");
-		grainShedButton.children[0].innerHTML = o_townBuildingsContainer.o_grainShed.count;
+		var grainShedButton = document.getElementById("Grain Shed");
+		grainShedButton.children[0].innerHTML = townBaseData["Grain Shed"].count;
 	}
 	updateBuildingBadges();
 
@@ -928,16 +928,16 @@ function update() {
 //#region init methods
 
 function registerEventListeners() {
-	let woodenHutButton = document.getElementById("woodenHut");
-	woodenHutButton.addEventListener("click", o_townBuildingsContainer.o_woodenHut.handleClick);
+	let woodenHutButton = document.getElementById("Wooden Hut");
+	woodenHutButton.addEventListener("click", townBaseData["Wooden Hut"].handleClick);
 	woodenHutButton.addEventListener("mouseenter", updateTooltip);
 
-	let farmButton = document.getElementById("farm");
-	farmButton.addEventListener("click", o_townBuildingsContainer.o_farm.handleClick);
+	let farmButton = document.getElementById("Farm");
+	farmButton.addEventListener("click", townBaseData["Farm"].handleClick);
 	farmButton.addEventListener("mouseenter", updateTooltip);
 
-	let grainShedButton = document.getElementById("grainShed");
-	grainShedButton.addEventListener("click", o_townBuildingsContainer.o_grainShed.handleClick);
+	let grainShedButton = document.getElementById("Grain Shed");
+	grainShedButton.addEventListener("click", townBaseData["Grain Shed"].handleClick);
 	grainShedButton.addEventListener("mouseenter", updateTooltip);
 }
 
@@ -972,21 +972,21 @@ function initCustomEffects() {
  *   the old functions with improper 'this' context.
  */
 function bindObjectFunctionContexts() {
-	o_townBuildingsContainer.o_woodenHut.handleClick =
-		o_townBuildingsContainer.o_woodenHut.handleClick.bind(
-			o_townBuildingsContainer.o_woodenHut
+	townBaseData["Wooden Hut"].handleClick =
+		townBaseData["Wooden Hut"].handleClick.bind(
+			townBaseData["Wooden Hut"]
 		);
-	o_townBuildingsContainer.o_farm.handleClick =
-		o_townBuildingsContainer.o_farm.handleClick.bind(
-			o_townBuildingsContainer.o_farm
+	townBaseData["Farm"].handleClick =
+		townBaseData["Farm"].handleClick.bind(
+			townBaseData["Farm"]
 		);
-	o_townBuildingsContainer.o_grainShed.handleClick =
-		o_townBuildingsContainer.o_grainShed.handleClick.bind(
-			o_townBuildingsContainer.o_grainShed
+	townBaseData["Grain Shed"].handleClick =
+		townBaseData["Grain Shed"].handleClick.bind(
+			townBaseData["Grain Shed"]
 		);
-	o_townBuildingsContainer.o_grainShed.calculateMultiplier =
-		o_townBuildingsContainer.o_grainShed.calculateMultiplier.bind(
-			o_townBuildingsContainer.o_grainShed
+	townBaseData["Grain Shed"].calculateMultiplier =
+		townBaseData["Grain Shed"].calculateMultiplier.bind(
+			townBaseData["Grain Shed"]
 		);
 }
 
@@ -1014,7 +1014,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	bindObjectFunctionContexts();
 	initCustomEffects();
 	addMultipliers();
-	
+
 	// this only tooltip (mouseEnter) and purchase (click) methods for town buildings
 	registerEventListeners();
 

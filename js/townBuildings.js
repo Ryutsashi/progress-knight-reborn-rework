@@ -4,8 +4,8 @@
  * and automates some linking of new buildings to game logic.
  */
 
-let o_townBuildingsContainer = {
-	o_woodenHut: {
+let townBaseData = {
+	"Wooden Hut": {
 		name: "Wooden Hut",
 		id: "woodenHut",
 		count: 0,
@@ -29,7 +29,7 @@ let o_townBuildingsContainer = {
 		}
 	},
 
-	o_farm: {
+	"Farm": {
 		name: "Farm",
 		id: "farm",
 		count: 0,
@@ -62,7 +62,7 @@ let o_townBuildingsContainer = {
 		}
 	},
 
-	o_grainShed: {
+	"Grain Shed": {
 		name: "Grain Shed",
 		id: "grainShed",
 		count: 0,
