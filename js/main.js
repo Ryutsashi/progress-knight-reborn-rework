@@ -817,6 +817,10 @@ function formatCoins(coins, element) {
 	element.children[3].style.color = colors["c"];
 }
 
+function autoFormatCoins() {
+	document.querySelectorAll('[data-auto-format]').forEach(element => formatCoins(element.dataset.autoFormat, element));
+}
+
 function showDeathText(show) {
 	document.getElementById("deathText").classList[show ? "remove" : "add"]("hidden");
 }
@@ -987,10 +991,12 @@ function bindObjectFunctionContexts() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+	// create UI
 	createAllRows(jobCategories, "jobTable");
 	createAllRows(skillCategories, "skillTable");
 	createAllRows(itemCategories, "itemTable");
 
+	// initialize game data
 	gameData.taskData = {};
 	Object.assign(gameData.taskData, createData(jobBaseData));
 	Object.assign(gameData.taskData, createData(skillBaseData));
@@ -1010,9 +1016,12 @@ document.addEventListener("DOMContentLoaded", () => {
 	initCustomEffects();
 	addMultipliers();
 
+	// initialize UI
 	switchSelectedTab(jobTabButton, "jobs");
 	showDeathText(gameData.isDead);
+	autoFormatCoins();
 
+	// start game loops
 	update();
 	setInterval(update, 1000 / updateSpeed);
 	setInterval(saveGameData, 6000);
