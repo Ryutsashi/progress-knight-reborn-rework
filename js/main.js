@@ -1012,9 +1012,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	loadGameData();
 	bindObjectFunctionContexts();
-	registerEventListeners();
 	initCustomEffects();
 	addMultipliers();
+	
+	// this only tooltip (mouseEnter) and purchase (click) methods for town buildings
+	registerEventListeners();
 
 	// initialize UI
 	switchSelectedTab(jobTabButton, "jobs");

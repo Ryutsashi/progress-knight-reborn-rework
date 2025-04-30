@@ -9,7 +9,7 @@ let o_townBuildingsContainer = {
 		name: "Wooden Hut",
 		id: "woodenHut",
 		count: 0,
-		baseCost: { get : () => 100000000001 }, //treat as const.
+		get baseCost() { return 100000000001 }, //treat as const.
 		costOfNextBuilding: 100000000001,
 		costGrowthFactor: 1.01,
 		role: ["Housing"],
@@ -33,7 +33,7 @@ let o_townBuildingsContainer = {
 		name: "Farm",
 		id: "farm",
 		count: 0,
-		baseCost: { get : () => 1000000000001 }, //treat as const
+		get baseCost() { return 1000000000001 }, //treat as const
 		costOfNextBuilding: 1000000000001,
 		costGrowthFactor: 1.05,
 		role: ["Food", "Income", "Prestige", "Nobility xp"],
@@ -66,7 +66,7 @@ let o_townBuildingsContainer = {
 		name: "Grain Shed",
 		id: "grainShed",
 		count: 0,
-		baseCost: { get : () => 100000000001 }, //treat as const
+		get baseCost() { return 100000000001 }, //treat as const
 		costOfNextBuilding: 100000000001,
 		costGrowthFactor: 1.07,
 		role: ["Food", "Income Boost"],
