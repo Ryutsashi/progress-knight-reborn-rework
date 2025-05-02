@@ -834,7 +834,6 @@ function rebirthOne() {
 }
 
 function rebirthTwo() {
-	testSuccessOfTownDestruction();
 
 	gameData.rebirthTwoCount += 1;
 	gameData.evil += getEvilGain();
@@ -844,7 +843,6 @@ function rebirthTwo() {
 	Object.values(gameData.taskData).forEach(task => task.maxLevel = 0);
 
 	destroyTownWhileEmbracingEvil();
-	testSuccessOfTownDestruction();
 }
 
 function rebirthReset() {
@@ -927,6 +925,29 @@ function update() {
 
 //#region init methods
 
+/*
+ *   Note: this gets called before we register event listeners, otherwise we register
+ *   the old functions with improper 'this' context.
+ */
+function bindObjectFunctionContexts() {
+	townBaseData["Wooden Hut"].handleClick =
+		townBaseData["Wooden Hut"].handleClick.bind(
+			townBaseData["Wooden Hut"]
+		);
+	townBaseData["Farm"].handleClick =
+		townBaseData["Farm"].handleClick.bind(
+			townBaseData["Farm"]
+		);
+	townBaseData["Grain Shed"].handleClick =
+		townBaseData["Grain Shed"].handleClick.bind(
+			townBaseData["Grain Shed"]
+		);
+	townBaseData["Grain Shed"].calculateMultiplier =
+		townBaseData["Grain Shed"].calculateMultiplier.bind(
+			townBaseData["Grain Shed"]
+		);
+}
+
 function registerEventListeners() {
 	let woodenHutButton = document.getElementById("Wooden Hut");
 	woodenHutButton.addEventListener("click", townBaseData["Wooden Hut"].handleClick);
@@ -965,29 +986,6 @@ function initCustomEffects() {
 
 	let immortality = gameData.taskData["Immortality"];
 	immortality.getEffect = () => 1 + getBaseLog(33, immortality.level + 1);
-}
-
-/*
- *   Note: this gets called before we register event listeners, otherwise we register
- *   the old functions with improper 'this' context.
- */
-function bindObjectFunctionContexts() {
-	townBaseData["Wooden Hut"].handleClick =
-		townBaseData["Wooden Hut"].handleClick.bind(
-			townBaseData["Wooden Hut"]
-		);
-	townBaseData["Farm"].handleClick =
-		townBaseData["Farm"].handleClick.bind(
-			townBaseData["Farm"]
-		);
-	townBaseData["Grain Shed"].handleClick =
-		townBaseData["Grain Shed"].handleClick.bind(
-			townBaseData["Grain Shed"]
-		);
-	townBaseData["Grain Shed"].calculateMultiplier =
-		townBaseData["Grain Shed"].calculateMultiplier.bind(
-			townBaseData["Grain Shed"]
-		);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
