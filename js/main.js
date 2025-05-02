@@ -583,33 +583,22 @@ function updateRequiredRows(data, categoryType) {
 			levelElement.classList.add("hidden");
 			evilElement.classList.add("hidden");
 
-			let finalText = "";
+			let finalText = [];
 			if (data == gameData.taskData) {
 				//display logic for a Job or Skill required row
 				if (requirementObject instanceof EvilRequirement) {
 					evilElement.classList.remove("hidden");
-					evilElement.textContent =
-						formatNumberWithSuffix(requirements[0].requirement) + " evil";
+					evilElement.textContent = formatNumberWithSuffix(requirements[0].requirement) + " evil";
 				} else {
 					levelElement.classList.remove("hidden");
 
 					//for each mini-object, like {task: Concentration, requirement: 10} inside the containing object like TaskRequirement
 					for (let requirement of requirements) {
 						let task = gameData.taskData[requirement.task];
-						//why not just use the already-built requirement.isCompleted check?
-						if (task.level >= requirement.requirement) continue;
-						let text =
-							" " +
-							requirement.task +
-							" level " +
-							task.level +
-							"/" +
-							formatNumberWithSuffix(requirement.requirement) +
-							",";
-						finalText += text;
+						if (requirementObject.satisfies(requirement)) continue;
+						finalText.push(`${requirement.task} level ${task.level}/${formatNumberWithSuffix(requirement.requirement)}`);
 					}
-					finalText = finalText.substring(0, finalText.length - 1);
-					levelElement.textContent = finalText;
+					levelElement.textContent = finalText.join(', ');
 				}
 				//Item requirement row display logic
 

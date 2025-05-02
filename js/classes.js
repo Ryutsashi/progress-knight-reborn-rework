@@ -113,12 +113,16 @@ class Requirement {
 			return true;
 		}
 		for (let requirement of this.requirements) {
-			if (!this.getCondition(requirement)) {
+			if (!this.satisfies(requirement)) {
 				return false;
 			}
 		}
 		this.completed = true;
 		return true;
+	}
+	satisfies(requirement) {
+		// abstract method, override in child classes
+		return false;
 	}
 }
 
@@ -128,7 +132,7 @@ class TaskRequirement extends Requirement {
 		this.type = "task";
 	}
 
-	getCondition(requirement) {
+	satisfies(requirement) {
 		return (
 			gameData.taskData[requirement.task].level >= requirement.requirement
 		);
@@ -141,7 +145,7 @@ class CoinRequirement extends Requirement {
 		this.type = "coins";
 	}
 
-	getCondition(requirement) {
+	satisfies(requirement) {
 		return gameData.coins >= requirement.requirement;
 	}
 }
@@ -152,7 +156,7 @@ class AgeRequirement extends Requirement {
 		this.type = "age";
 	}
 
-	getCondition(requirement) {
+	satisfies(requirement) {
 		return gameData.days >= requirement.requirement;
 	}
 }
@@ -163,7 +167,7 @@ class EvilRequirement extends Requirement {
 		this.type = "evil";
 	}
 
-	getCondition(requirement) {
+	satisfies(requirement) {
 		return gameData.evil >= requirement.requirement;
 	}
 }
