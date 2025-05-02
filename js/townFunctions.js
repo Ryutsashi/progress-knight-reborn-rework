@@ -71,8 +71,7 @@ function saveTownState() {
 		ifVerboseLoggingSay("value: ", o_building);
 		let saveObject = {
 			name: o_building.name,
-			count: o_building.count,
-			costOfNextBuilding: o_building.costOfNextBuilding
+			count: o_building.count
 		};
 		if (saveObject !== undefined) {
 			ifVerboseLoggingSay("This is the save object we created: ", saveObject);
@@ -96,8 +95,6 @@ function destroyTownWhileEmbracingEvil() {
 			if (o_building.name in gameData.townData) {
 				let savedBuilding = gameData.townData[o_building.name];
 				savedBuilding.count = o_building.count = 0;
-				o_building.costOfNextBuilding =
-					savedBuilding.costOfNextBuilding = o_building.baseCost;
 			}
 		}
 		gameData.rawTownIncome = 0;
@@ -133,4 +130,8 @@ function updateIdleCitizens() {
 	);
 
 	elementToUpdate.textContent = `Idle citizens: ${gameData.idleCitizens}`;
+}
+
+function calculateCostOfNextBuilding(building) {
+	return building.baseCost * (building.costGrowthFactor ** building.count);
 }

@@ -335,8 +335,7 @@ function createGameStateFromSnapshot(snapshot) {
 }
 
 function createTasks(taskData) {
-	let tasks = createData(taskData);
-	return tasks;
+	return createData(taskData);
 }
 
 function createItems() {

@@ -924,41 +924,17 @@ function update() {
 //#endregion
 
 //#region init methods
-
-/*
- *   Note: this gets called before we register event listeners, otherwise we register
- *   the old functions with improper 'this' context.
- */
-function bindObjectFunctionContexts() {
-	townBaseData["Wooden Hut"].handleClick =
-		townBaseData["Wooden Hut"].handleClick.bind(
-			townBaseData["Wooden Hut"]
-		);
-	townBaseData["Farm"].handleClick =
-		townBaseData["Farm"].handleClick.bind(
-			townBaseData["Farm"]
-		);
-	townBaseData["Grain Shed"].handleClick =
-		townBaseData["Grain Shed"].handleClick.bind(
-			townBaseData["Grain Shed"]
-		);
-	townBaseData["Grain Shed"].calculateMultiplier =
-		townBaseData["Grain Shed"].calculateMultiplier.bind(
-			townBaseData["Grain Shed"]
-		);
-}
-
 function registerEventListeners() {
 	let woodenHutButton = document.getElementById("Wooden Hut");
-	woodenHutButton.addEventListener("click", townBaseData["Wooden Hut"].handleClick);
+	woodenHutButton.addEventListener("click", e => townBaseData["Wooden Hut"].handleClick(e));
 	woodenHutButton.addEventListener("mouseenter", updateTooltip);
 
 	let farmButton = document.getElementById("Farm");
-	farmButton.addEventListener("click", townBaseData["Farm"].handleClick);
+	farmButton.addEventListener("click", e => townBaseData["Farm"].handleClick(e));
 	farmButton.addEventListener("mouseenter", updateTooltip);
 
 	let grainShedButton = document.getElementById("Grain Shed");
-	grainShedButton.addEventListener("click", townBaseData["Grain Shed"].handleClick);
+	grainShedButton.addEventListener("click", e => townBaseData["Grain Shed"].handleClick(e));
 	grainShedButton.addEventListener("mouseenter", updateTooltip);
 }
 
@@ -1009,7 +985,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	gameData.requirements = initializeRequirements(gameData);
 
 	loadGameData();
-	bindObjectFunctionContexts();
 	initCustomEffects();
 	addMultipliers();
 
