@@ -81,14 +81,14 @@ function saveTownState() {
 	}
 }
 
-function loadTownState() {
+function loadTownState(townData) {
 	for (let building in townBaseData) {
-		townBaseData[building].count = gameData.townData[townBaseData[building].name]?.count;
+		townBaseData[building].count = townData[townBaseData[building].name]?.count;
 	}
 }
 
 function destroyTownWhileEmbracingEvil() {
-	//reset values in o_townBuildingContainer to their base values
+	//reset values in townBaseData to their base values
 	//reset values in gameData.townData, if it is not null, to their base values
 	if (gameData.townData) {
 		for (let building in townBaseData) {
@@ -101,23 +101,6 @@ function destroyTownWhileEmbracingEvil() {
 			}
 		}
 		gameData.rawTownIncome = 0;
-	}
-}
-
-function testSuccessOfTownDestruction() {
-	for (let building in townBaseData) {
-		let o_building = townBaseData[building];
-		if (o_building.name in gameData.townData) {
-			let savedBuilding = gameData.townData[o_building.name];
-			ifVerboseLoggingSay(
-				`Type of Saved Count: ${typeof savedBuilding.count}\n`,
-				`${o_building.name} Saved count: ${savedBuilding.count}\n`,
-				`${o_building.name} Saved cost: ${savedBuilding.costOfNextBuilding}\n`,
-				`${o_building.name} Working count: ${o_building.count}\n`,
-				`${o_building.name} Working cost: ${o_building.costOfNextBuilding}`
-			);
-			savedBuilding.count = o_building.count = 0;
-		}
 	}
 }
 

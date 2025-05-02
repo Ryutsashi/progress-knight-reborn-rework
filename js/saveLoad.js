@@ -52,7 +52,7 @@ function loadGameData() {
 		loadSkipSkillsAndDarkMode();
 	}
 
-	loadTownState();
+	loadTownState(gameData.townData);
 	gameData.rawTownIncome = updateRawTownIncome();
 	assignMethods();
 }
@@ -194,11 +194,7 @@ function assignMethods() {
 function getGameStateSnapshot() {
 	return {
 		taskData: getBasicTaskData(),
-		// useless, static data
-		// itemData: getBasicItemData(),
 		townData: getBasicTownData(),
-		// can be derived
-		// rawTownIncome: gameData.rawTownIncome,
 		coins: gameData.coins,
 		days: gameData.days,
 		evil: gameData.evil,
@@ -345,6 +341,12 @@ function createTasks(taskData) {
 
 function createItems() {
 	return createData(itemBaseData);
+}
+
+function createTownBuildings(townData) {
+	// TODO: temporary
+	loadTownState(townData);
+	return townData;
 }
 
 function bindTaskReferences(objects) {
