@@ -92,7 +92,7 @@ class Item {
 	}
 
 	getEffectDescription() {
-		var description = itemCategories["Properties"].includes(this.name) ? "Happiness" : this.baseData.description;
+		let description = itemCategories["Properties"].includes(this.name) ? "Happiness" : this.baseData.description;
 		return "x" + this.baseData.effect.toFixed(1) + " " + description;
 	}
 

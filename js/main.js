@@ -1,4 +1,4 @@
-var gameData = {
+let gameData = {
 	version: "0.4.1",
 	taskData: {},
 	itemData: {},
@@ -40,10 +40,10 @@ const unitSuffixes = ["", "k", "M", "B", "T", "q", "Q", "Sx", "Sp", "Oc"];
 	the game state should be kept separate.
 */
 // tempData is used during initial game setup.
-var tempData = {};
+let tempData = {};
 
 // used for Auto Learn skill switching logic
-var skillWithLowestMaxXp = null;
+let skillWithLowestMaxXp = null;
 
 const jobTabButton = document.getElementById("jobTabButton");
 
@@ -558,63 +558,47 @@ function updateRequiredRows(data, categoryType) {
 					nextEntity = data[nextEntityName];
 					break;
 				}
-
-				//decision logic for setting the item to be up next, and therefore used for the required row
-				//if the current job doesn't match the job in the entity's TaskRequirement, continue to the next loop iteration
-				//if the current job matches the item, display that item in the required rows
-
-				/* var requirementObject = nextEntityRequirements; //grab the containing requirement object, like TaskRequirement or CoinRequirement
-            if( (requirementObject instanceof TaskRequirement) && gameData.currentJob == requirementObject.requirements[0].task && !requirementObject.isCompleted()) {
-                //i++;
-                nextEntity = data[nextEntityName];
-                break;
-            } else if( (requirementObject instanceof TaskRequirement) && gameData.currentJob != requirementObject.requirements[0].task) {
-                continue;
-            }  else if(requirementObject instanceof CoinRequirement && !nextEntityRequirements.isCompleted()) {
-                nextEntity = data[nextEntityName];
-                break;
-            } */
 			}
 		}
 
 		//If we didn't find an object within the array that has requirements left to fulfill, we don't display any
-		//required row. We do this by setting the required row to hiddenTask so it doesn't display.
+		//required row. We do this by setting the required row class to .hidden so it doesn't display.
 		if (nextEntity == null) {
-			requiredRow.classList.add("hiddenTask");
+			requiredRow.classList.add("hidden");
 
 			//Otherwise, we do have an object to display a required row for. This following code is the code
 			//that decides what exactly gets displayed into the requiredRow template.
 		} else {
-			requiredRow.classList.remove("hiddenTask");
-			var requirementObject = gameData.requirements[nextEntity.name]; //grab the containing requirement object, like TaskRequirement or CoinRequirement
-			var requirements = requirementObject.requirements; //get the inner object, like {task: Concentration, requirement: 85}
+			requiredRow.classList.remove("hidden");
+			let requirementObject = gameData.requirements[nextEntity.name]; //grab the containing requirement object, like TaskRequirement or CoinRequirement
+			let requirements = requirementObject.requirements; //get the inner object, like {task: Concentration, requirement: 85}
 
 			//grab references to <span> elements within the template
-			var coinElement = requiredRow.getElementsByClassName("coins")[0];
-			var levelElement = requiredRow.getElementsByClassName("levels")[0];
-			var evilElement = requiredRow.getElementsByClassName("evil")[0];
+			let coinElement = requiredRow.getElementsByClassName("coins")[0];
+			let levelElement = requiredRow.getElementsByClassName("levels")[0];
+			let evilElement = requiredRow.getElementsByClassName("evil")[0];
 
 			//start by setting all spans to hidden
-			coinElement.classList.add("hiddenTask");
-			levelElement.classList.add("hiddenTask");
-			evilElement.classList.add("hiddenTask");
+			coinElement.classList.add("hidden");
+			levelElement.classList.add("hidden");
+			evilElement.classList.add("hidden");
 
-			var finalText = "";
+			let finalText = "";
 			if (data == gameData.taskData) {
 				//display logic for a Job or Skill required row
 				if (requirementObject instanceof EvilRequirement) {
-					evilElement.classList.remove("hiddenTask");
+					evilElement.classList.remove("hidden");
 					evilElement.textContent =
 						formatNumberWithSuffix(requirements[0].requirement) + " evil";
 				} else {
-					levelElement.classList.remove("hiddenTask");
+					levelElement.classList.remove("hidden");
 
 					//for each mini-object, like {task: Concentration, requirement: 10} inside the containing object like TaskRequirement
-					for (requirement of requirements) {
-						var task = gameData.taskData[requirement.task];
+					for (let requirement of requirements) {
+						let task = gameData.taskData[requirement.task];
 						//why not just use the already-built requirement.isCompleted check?
 						if (task.level >= requirement.requirement) continue;
-						var text =
+						let text =
 							" " +
 							requirement.task +
 							" level " +
@@ -640,16 +624,16 @@ function updateRequiredRows(data, categoryType) {
 				 */
 			} else if (data == gameData.itemData) {
 				if (requirementObject instanceof CoinRequirement) {
-					coinElement.classList.remove("hiddenTask");
-					levelElement.classList.remove("hiddenTask");
+					coinElement.classList.remove("hidden");
+					levelElement.classList.remove("hidden");
 					formatCoins(requirements[0].requirement, coinElement);
 				} else if (requirementObject instanceof TaskRequirement) {
-					levelElement.classList.remove("hiddenTask");
-					for (requirement of requirements) {
-						var task = gameData.taskData[requirement.task];
+					levelElement.classList.remove("hidden");
+					for (let requirement of requirements) {
+						let task = gameData.taskData[requirement.task];
 						//why not just use the already-built requirement.isCompleted check?
 						if (task.level >= requirement.requirement) continue;
-						var text =
+						let text =
 							" " +
 							requirement.task +
 							" level " +
@@ -749,13 +733,13 @@ function updateText() {
 	document.getElementById("timeWarpingButton").textContent = gameData.timeWarpingEnabled ? "Disable warp" : "Enable warp";
 
 	function updateBuildingBadges() {
-		var woodenHutButton = document.getElementById("Wooden Hut");
+		let woodenHutButton = document.getElementById("Wooden Hut");
 		woodenHutButton.children[0].innerHTML = townBaseData["Wooden Hut"].count;
 
-		var farmButton = document.getElementById("Farm");
+		let farmButton = document.getElementById("Farm");
 		farmButton.children[0].innerHTML = townBaseData["Farm"].count;
 
-		var grainShedButton = document.getElementById("Grain Shed");
+		let grainShedButton = document.getElementById("Grain Shed");
 		grainShedButton.children[0].innerHTML = townBaseData["Grain Shed"].count;
 	}
 	updateBuildingBadges();

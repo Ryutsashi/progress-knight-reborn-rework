@@ -8,18 +8,11 @@
 //  the income * count and add it to the total income variable. Return the total income
 //  variable.
 function updateRawTownIncome() {
-	//console.log("testing updateRawTownIncome function. We are inside the function now.");
 	let totalIncome = 0;
-	//console.log("totalIncome: " + totalIncome);
-	//console.log("Starting for loop...");
 	for (let building in townBaseData) {
-		//console.log("key: " + building);
 		//building represents the key, so we use it to get a reference to the actual object
 		let o_building = townBaseData[building];
-		//console.log("value: " + o_building);
 		if ("income" in o_building) {
-			//console.log("Income is detected in " + o_building.name + " building.");
-
 			/*
 			 *   Description: if a building might have its income boosted by other buildings,
 			 *   we iterate through all buildings to calculate the total income multiplier from all
@@ -50,10 +43,8 @@ function updateRawTownIncome() {
 			} else {
 				totalIncome += o_building.getIncome();
 			}
-			//console.log("Income from " + o_building.name + " added to total. New total income: " + totalIncome);
 		}
 	}
-	//console.log("For loop complete. totalIncome = " + totalIncome);
 	return totalIncome;
 }
 

@@ -311,7 +311,7 @@ function createGameStateFromSnapshot(snapshot) {
 		itemData: bindItemReferences(objectStates),
 		// in the current data structure nothing is referenced by a building as stored inside gameData.townData
 		// townData: bindTownBuildingReferences(objectStates),
-		// this also creates requirements, for now...
+		// this also CREATES requirements, for now...
 		requirements: bindRequirementReferences(objectStates),
 	}
 	
