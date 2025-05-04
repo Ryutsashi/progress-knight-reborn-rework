@@ -20,7 +20,7 @@ class Task {
 
 	getMaxXp() {
 		return Math.round(
-			this.baseData.maxXp * (this.level + 1) * Math.pow(1.01, this.level)
+			this.baseData.maxXp * (this.level + 1) * (1.01 ** this.level)
 		);
 	}
 

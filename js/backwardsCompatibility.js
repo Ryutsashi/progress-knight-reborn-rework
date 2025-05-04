@@ -85,3 +85,20 @@ const migrationsRecord = [
 	// 	}
 	// }
 ]
+
+// TODO: will need this to auto-update entity keys when data refactoring is complete
+// function formatEntityName(name) {
+// 	// remove leading and trailing whitespace
+// 	let temp = name.trim();
+// 	// mustn't start with a number
+// 	let prefix = Number.isNaN(Number(temp[0])) ? '' : '_';
+// 	// "Demon's Wealth" -> "DEMONS_WEALTH"
+// 	return prefix + temp
+// 		.split(/[\s_-]/)
+// 		.map(word => word
+// 			.toUpperCase()
+// 			.replace(/[^A-Z]/, "")
+// 		)
+// 		.filter(word => word.length > 0)
+// 		.join("_");
+// }
