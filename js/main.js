@@ -111,12 +111,12 @@ function getIncome() {
 	return gameData.currentJob.getIncome() + gameData.rawTownIncome;
 }
 
-function getBoundTaskEffect(taskName) {
-	return gameData.taskData[taskName].getEffect.bind(gameData.taskData[taskName]);
+function getBoundTaskEffect(taskName, data = gameData.taskData) {
+	return data[taskName].getEffect.bind(data[taskName]);
 }
 
-function getBoundItemEffect(itemName) {
-	return gameData.itemData[itemName].getEffect.bind(gameData.itemData[itemName]);
+function getBoundItemEffect(itemName, data = gameData.itemData) {
+	return data[itemName].getEffect.bind(data[itemName]);
 }
 
 function getEvilGain() {
@@ -175,158 +175,7 @@ function setActiveTask(taskName) {
 	gameData[task instanceof Job ? "currentJob" : "currentSkill"] = task;
 }
 
-// ok, def not a SIMPLE method
-function addMultipliers() {
-	Object.values(gameData.taskData).forEach(task => {
-
-		task.xpMultipliers = [
-			task.getMaxLevelMultiplier.bind(task),
-			getHappiness,
-			getBoundTaskEffect("Dark influence"),
-			getBoundTaskEffect("Demon training")
-		];
-
-		if (task instanceof Job) {
-			task.incomeMultipliers = [
-				task.getLevelMultiplier.bind(task),
-				getBoundTaskEffect("Demon's wealth")
-			];
-			task.xpMultipliers.push(
-				getBoundTaskEffect("Productivity"),
-				getBoundItemEffect("Personal squire")
-			);
-		} else if (task instanceof Skill) {
-			task.xpMultipliers.push(
-				getBoundTaskEffect("Concentration"),
-				getBoundItemEffect("Rag Clothing"),
-				getBoundItemEffect("Book"),
-				getBoundItemEffect("Study desk"),
-				getBoundItemEffect("Library")
-			);
-		}
-
-		if (jobCategories["Military"].includes(task.name)) {
-			task.incomeMultipliers.push(
-				getBoundTaskEffect("Strength")
-			);
-			task.xpMultipliers.push(
-				getBoundTaskEffect("Battle tactics"),
-				getBoundItemEffect("Steel longsword")
-		);
-		} else if (jobCategories["The Order of Discovery"].includes(task.name)) {
-			task.xpMultipliers.push(
-				getBoundTaskEffect("Novel Knowledge"),
-				getBoundTaskEffect("Unusual Insight")
-			);
-		} else if (task.name == "Farmer") {
-			//trying to make hand tools increase farmer income
-			task.incomeMultipliers.push(
-				getBoundItemEffect("Basic Farm Tools"),
-				getBoundItemEffect("Small Field"),
-				getBoundItemEffect("Ox-driven Plow"),
-				getBoundItemEffect("Livestock-derived Fertilizer")
-			);
-			task.xpMultipliers.push(
-				getBoundItemEffect("Small Field"),
-				getBoundItemEffect("Ox-driven Plow")
-			);
-		} else if (task.name == "Fisherman") {
-			// Fishing rod boosts both income and fishing xp (bigger fish baby!)
-			task.incomeMultipliers.push(
-				getBoundItemEffect("Cheap Fishing Rod")
-			);
-			task.xpMultipliers.push(
-				getBoundItemEffect("Cheap Fishing Rod")
-			);
-		} else if (task.name == "Miner") {
-			//lantern boosts income and miner xp by 1.5x
-			task.incomeMultipliers.push(
-				getBoundItemEffect("Miner's Lantern")
-			);
-			task.xpMultipliers.push(
-				getBoundItemEffect("Miner's Lantern")
-			);
-		} else if (task.name == "Blacksmith") {
-			//crappy anvil boosts income and xp of blacksmith by 1.5x
-			task.incomeMultipliers.push(
-				getBoundItemEffect("Crappy Anvil"),
-				getBoundItemEffect("Breech Bellows")
-			);
-			task.xpMultipliers.push(
-				getBoundItemEffect("Crappy Anvil"),
-				getBoundItemEffect("Breech Bellows")
-			);
-		} else if (task.name == "Merchant") {
-			task.incomeMultipliers.push(
-				getBoundItemEffect("Pack Horse"),
-				getBoundTaskEffect("Trade Psychology"),
-				getBoundItemEffect("Small Shop"),
-				getBoundItemEffect("Weapon Outlet")
-			);
-			task.xpMultipliers.push(
-				getBoundItemEffect("Pack Horse"),
-				getBoundItemEffect("Small Shop"),
-				getBoundItemEffect("Weapon Outlet")
-			);
-		} else if (task.name == "Chairman") {
-			task.incomeMultipliers.push(
-				getBoundTaskEffect("Magical Engineering")
-			);
-			task.xpMultipliers.push(
-				getBoundTaskEffect("Magical Engineering"),
-				getBoundTaskEffect("Scales Of Thought"),
-				getBoundTaskEffect("Magical Biology")
-			);
-		} else if (task.name == "Illustrious Chairman") {
-			task.incomeMultipliers.push(
-				getBoundTaskEffect("Magical Engineering")
-			);
-			task.xpMultipliers.push(
-				getBoundTaskEffect("Magical Engineering"),
-				getBoundTaskEffect("Scales Of Thought"),
-				getBoundTaskEffect("Magical Biology")
-			);
-		} else if (task.name == "Strength") {
-			task.xpMultipliers.push(
-				getBoundTaskEffect("Muscle memory"),
-				getBoundItemEffect("Dumbbells")
-			);
-		} else if (skillCategories["Magic"].includes(task.name)) {
-			task.xpMultipliers.push(
-				getBoundItemEffect("Sapphire charm"),
-				getBoundTaskEffect("Novel Knowledge"),
-				getBoundTaskEffect("Unusual Insight"),
-				getBoundTaskEffect("Scales Of Thought")
-			);
-		} else if (skillCategories["Dark magic"].includes(task.name)) {
-			task.xpMultipliers.push(
-				getEvil
-			);
-		}
-		if (jobCategories["The Arcane Association"].includes(task.name)) {
-			task.xpMultipliers.push(
-				getBoundTaskEffect("Mana control"),
-				getBoundTaskEffect("Novel Knowledge"),
-				getBoundTaskEffect("Unusual Insight")
-			);
-		}
-		if (jobCategories["Nobility"].includes(task.name)) {
-			//todo
-		}
-	});
-
-	Object.values(gameData.itemData).forEach(item => item.expenseMultipliers = [getBoundTaskEffect("Bargaining"), getBoundTaskEffect("Intimidation")]);
-}
-
 function applyMultipliers(value, multipliers) {
-	// let finalMultiplier = 1;
-	// multipliers.forEach(multiplierFunction => {
-	// 	if (multiplierFunction) {
-	// 		ifVerboseLoggingSay("multiplierFunction is null");
-	// 	}
-	// 	else finalMultiplier *= multiplierFunction();
-	// });
-	// return Math.round(value * finalMultiplier);
 	return Math.round(multipliers.reduce((final, fn) => final *= fn(), value));
 }
 
@@ -574,9 +423,9 @@ function updateRequiredRows(data, categoryType) {
 			let requirements = requirementObject.requirements; //get the inner object, like {task: Concentration, requirement: 85}
 
 			//grab references to <span> elements within the template
-			let coinElement = requiredRow.getElementsByClassName("coins")[0];
-			let levelElement = requiredRow.getElementsByClassName("levels")[0];
-			let evilElement = requiredRow.getElementsByClassName("evil")[0];
+			let coinElement = requiredRow.querySelector(".coins");
+			let levelElement = requiredRow.querySelector(".levels");
+			let evilElement = requiredRow.querySelector(".evil");
 
 			//start by setting all spans to hidden
 			coinElement.classList.add("hidden");
@@ -884,7 +733,10 @@ function updateUI() {
 }
 
 function update() {
-	if (gameData.isPaused) return;
+	if (gameData.isPaused) {
+		updateUI();
+		return;
+	}
 
 	increaseDays();
 	autoPromote();
@@ -911,11 +763,153 @@ function registerEventListeners() {
 	grainShedButton.addEventListener("mouseenter", updateTooltip);
 }
 
-function initCustomEffects() {
-	let bargaining = gameData.taskData["Bargaining"];
+// ok, def not a SIMPLE method
+// TODO: this is a mess. Instead, let's assign tags to the final recipients, then tell a multiplier what it's fishing for, then fetch all recipients by a tag and make the multiplier apply itself to the tagged recipients
+function addTaskMultipliers(data = gameData.taskData) {
+	Object.values(data).forEach(task => {
+
+		task.xpMultipliers = [
+			task.getMaxLevelMultiplier.bind(task),
+			getHappiness,
+			getBoundTaskEffect("Dark influence"),
+			getBoundTaskEffect("Demon training")
+		];
+
+		if (task instanceof Job) {
+			task.incomeMultipliers = [
+				task.getLevelMultiplier.bind(task),
+				getBoundTaskEffect("Demon's wealth")
+			];
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Productivity"),
+				getBoundItemEffect("Personal squire")
+			);
+		} else if (task instanceof Skill) {
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Concentration"),
+				getBoundItemEffect("Rag Clothing"),
+				getBoundItemEffect("Book"),
+				getBoundItemEffect("Study desk"),
+				getBoundItemEffect("Library")
+			);
+		}
+
+		if (jobCategories["Military"].includes(task.name)) {
+			task.incomeMultipliers.push(
+				getBoundTaskEffect("Strength")
+			);
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Battle tactics"),
+				getBoundItemEffect("Steel longsword")
+		);
+		} else if (jobCategories["The Order of Discovery"].includes(task.name)) {
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Novel Knowledge"),
+				getBoundTaskEffect("Unusual Insight")
+			);
+		} else if (task.name == "Farmer") {
+			//trying to make hand tools increase farmer income
+			task.incomeMultipliers.push(
+				getBoundItemEffect("Basic Farm Tools"),
+				getBoundItemEffect("Small Field"),
+				getBoundItemEffect("Ox-driven Plow"),
+				getBoundItemEffect("Livestock-derived Fertilizer")
+			);
+			task.xpMultipliers.push(
+				getBoundItemEffect("Small Field"),
+				getBoundItemEffect("Ox-driven Plow")
+			);
+		} else if (task.name == "Fisherman") {
+			// Fishing rod boosts both income and fishing xp (bigger fish baby!)
+			task.incomeMultipliers.push(
+				getBoundItemEffect("Cheap Fishing Rod")
+			);
+			task.xpMultipliers.push(
+				getBoundItemEffect("Cheap Fishing Rod")
+			);
+		} else if (task.name == "Miner") {
+			//lantern boosts income and miner xp by 1.5x
+			task.incomeMultipliers.push(
+				getBoundItemEffect("Miner's Lantern")
+			);
+			task.xpMultipliers.push(
+				getBoundItemEffect("Miner's Lantern")
+			);
+		} else if (task.name == "Blacksmith") {
+			//crappy anvil boosts income and xp of blacksmith by 1.5x
+			task.incomeMultipliers.push(
+				getBoundItemEffect("Crappy Anvil"),
+				getBoundItemEffect("Breech Bellows")
+			);
+			task.xpMultipliers.push(
+				getBoundItemEffect("Crappy Anvil"),
+				getBoundItemEffect("Breech Bellows")
+			);
+		} else if (task.name == "Merchant") {
+			task.incomeMultipliers.push(
+				getBoundItemEffect("Pack Horse"),
+				getBoundTaskEffect("Trade Psychology"),
+				getBoundItemEffect("Small Shop"),
+				getBoundItemEffect("Weapon Outlet")
+			);
+			task.xpMultipliers.push(
+				getBoundItemEffect("Pack Horse"),
+				getBoundItemEffect("Small Shop"),
+				getBoundItemEffect("Weapon Outlet")
+			);
+		} else if (task.name == "Chairman") {
+			task.incomeMultipliers.push(
+				getBoundTaskEffect("Magical Engineering")
+			);
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Magical Engineering"),
+				getBoundTaskEffect("Scales Of Thought"),
+				getBoundTaskEffect("Magical Biology")
+			);
+		} else if (task.name == "Illustrious Chairman") {
+			task.incomeMultipliers.push(
+				getBoundTaskEffect("Magical Engineering")
+			);
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Magical Engineering"),
+				getBoundTaskEffect("Scales Of Thought"),
+				getBoundTaskEffect("Magical Biology")
+			);
+		} else if (task.name == "Strength") {
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Muscle memory"),
+				getBoundItemEffect("Dumbbells")
+			);
+		} else if (skillCategories["Magic"].includes(task.name)) {
+			task.xpMultipliers.push(
+				getBoundItemEffect("Sapphire charm"),
+				getBoundTaskEffect("Novel Knowledge"),
+				getBoundTaskEffect("Unusual Insight"),
+				getBoundTaskEffect("Scales Of Thought")
+			);
+		} else if (skillCategories["Dark magic"].includes(task.name)) {
+			task.xpMultipliers.push(
+				getEvil
+			);
+		}
+		if (jobCategories["The Arcane Association"].includes(task.name)) {
+			task.xpMultipliers.push(
+				getBoundTaskEffect("Mana control"),
+				getBoundTaskEffect("Novel Knowledge"),
+				getBoundTaskEffect("Unusual Insight")
+			);
+		}
+		if (jobCategories["Nobility"].includes(task.name)) {
+			//todo
+		}
+	});
+}
+
+function initCustomEffects(taskData) {
+	let bargaining = taskData["Bargaining"];
 	bargaining.getEffect = () => Math.max(0.1, 1 - getBaseLog(7, bargaining.level + 1) / 10);
 
-	let intimidation = gameData.taskData["Intimidation"];
+	let intimidation = taskData["Intimidation"];
 	intimidation.getEffect = () => Math.max(0.1, 1 - getBaseLog(7, intimidation.level + 1) / 10);
 
 	//          ***    HISTORICAL NOTES    ***
@@ -927,14 +921,18 @@ function initCustomEffects() {
 
 	// This re-defined getEffect() function is called in the getGameSpeed() function.
 
-	let timeWarping = gameData.taskData["Time warping"];
+	let timeWarping = taskData["Time warping"];
 	timeWarping.getEffect = () => 1 + getBaseLog(13, timeWarping.level + 1);
 
-	let flow = gameData.taskData["Flow"];
+	let flow = taskData["Flow"];
 	flow.getEffect = () => 1 + getBaseLog(100, flow.level + 1) / 1.3;
 
-	let immortality = gameData.taskData["Immortality"];
+	let immortality = taskData["Immortality"];
 	immortality.getEffect = () => 1 + getBaseLog(33, immortality.level + 1);
+}
+
+function addItemMultipliers(data = gameData.itemData) {
+	Object.values(data).forEach(item => item.expenseMultipliers = [getBoundTaskEffect("Bargaining"), getBoundTaskEffect("Intimidation")]);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -958,10 +956,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	gameData.requirements = initializeRequirements(gameData);
 
 	loadGameData();
-	initCustomEffects();
-	addMultipliers();
+	addTaskMultipliers(gameData.taskData);
+	initCustomEffects(gameData.taskData);
+	addItemMultipliers(gameData.itemData);
 
-	// this only tooltip (mouseEnter) and purchase (click) methods for town buildings
+	// this only handles tooltip (mouseEnter) and purchase (click) methods for town buildings
 	registerEventListeners();
 
 	// initialize UI
