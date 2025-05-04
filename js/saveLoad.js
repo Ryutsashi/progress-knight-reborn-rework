@@ -5,11 +5,7 @@ function saveSkipSkillsAndDarkMode() {
 	gameData.skippedSkills = [];
 
 	for (let skillName in gameData.taskData) {
-		if (
-			document
-				.getElementById("row " + skillName)
-				.getElementsByClassName("checkbox")[0].checked
-		) {
+		if (document.getElementById("row " + skillName).querySelector(".checkbox").checked) {
 			gameData.skippedSkills.push(skillName);
 		}
 	}
@@ -23,10 +19,8 @@ function loadSkipSkillsAndDarkMode() {
 	autoPromoteElement.checked = gameData.autoPromote;
 	autoLearnElement.checked = gameData.autoLearn;
 
-	for (let x = 0; x < gameData.skippedSkills.length; x++) {
-		document
-			.getElementById("row " + gameData.skippedSkills[x])
-			.getElementsByClassName("checkbox")[0].checked = true;
+	for (let i = 0; i < gameData.skippedSkills.length; i++) {
+		document.getElementById("row " + gameData.skippedSkills[i]).querySelector(".checkbox").checked = true;
 	}
 
 	if (!gameData.darkMode) toggleLightDarkMode();
@@ -290,12 +284,12 @@ function createGameStateFromSnapshot(snapshot) {
 		idleCitizens: Number(snapshot.idleCitizens),
 	}
 	let boolStates = {
-		paused: snapshot.paused,
-		autoPromote: snapshot.autoPromote,
-		darkMode: snapshot.darkMode,
-		autoLearn: snapshot.autoLearn,
+		paused: Boolean(snapshot.paused),
+		autoPromote: Boolean(snapshot.autoPromote),
+		darkMode: Boolean(snapshot.darkMode),
+		autoLearn: Boolean(snapshot.autoLearn),
 		// TODO: this can be derived if we just store the data in the skill itself, which would likely be preferred over keeping it in different places
-		skippedSkills: snapshot.skippedSkills,
+		skippedSkills: snapshot.skippedSkills.slice(),
 	}
 	// Pass 1: create the objects
 	let objectStates = {
@@ -349,15 +343,22 @@ function createTownBuildings(townData) {
 }
 
 function bindTaskReferences(objects) {
-	for (let task of objects.taskData) {
-		// bind xp and income multipliers
-	}
+	// TODO: temporarily calls old methods
+	initCustomEffects(objects.taskData);
+	addTaskMultipliers(objects.taskData);
+	// for (let task of objects.taskData) {
+		// 	// bind xp and income multipliers
+	// }
+	return objects.taskData;
 }
 
 function bindItemReferences(objects) {
-	for (let item of objects.taskData) {
-		// bind xp multipliers
-	}
+	// TODO: temporarily calls old methods
+	addItemMultipliers(objects.itemData);
+	// for (let item of objects.taskData) {
+	// 	// bind xp multipliers
+	// }
+	return objects.itemData;
 }
 
 function bindRequirementReferences(objects) {
