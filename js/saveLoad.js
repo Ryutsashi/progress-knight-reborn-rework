@@ -1,54 +1,95 @@
-// TODO: remove and update the data when interacting with the elements themselves rather than doing it here on game save
-function saveSkipSkillsAndDarkMode() {
-	gameData.autoPromote = autoPromoteElement.checked;
-	gameData.autoLearn = autoLearnElement.checked;
-	gameData.skippedSkills = [];
+const STATE_SAVE_KEY = "gameDataSave";
 
-	for (let skillName in gameData.taskData) {
+function initializeGameState(data) {
+	
+	data.taskData = {};
+	Object.assign(data.taskData, createData(jobBaseData));
+	Object.assign(data.taskData, createData(skillBaseData));
+	data.itemData = {};
+	Object.assign(data.itemData, createData(itemBaseData));
+
+	data.currentJob = data.taskData["Beggar"];
+	data.currentSkill = data.taskData["Concentration"];
+	data.currentProperty = data.itemData["Homeless"];
+	data.currentMisc = [];
+	
+	data.requirements = initializeRequirements(data);
+
+	return data;
+}
+
+// TODO: remove and update the data when interacting with the elements themselves rather than doing it here on game save
+function saveSkipSkillsAndDarkMode(data) {
+	data.autoPromote = autoPromoteElement.checked;
+	data.autoLearn = autoLearnElement.checked;
+	data.skippedSkills = [];
+
+	for (let skillName in data.taskData) {
 		if (document.getElementById("row " + skillName).querySelector(".checkbox").checked) {
-			gameData.skippedSkills.push(skillName);
+			data.skippedSkills.push(skillName);
 		}
 	}
 
-	gameData.darkMode = document
+	data.darkMode = document
 		.getElementById("body")
 		.classList.contains("dark");
+	
+	return data;
 }
 
-function loadSkipSkillsAndDarkMode() {
-	autoPromoteElement.checked = gameData.autoPromote;
-	autoLearnElement.checked = gameData.autoLearn;
+function loadSkipSkillsAndDarkMode(data) {
+	autoPromoteElement.checked = data.autoPromote;
+	autoLearnElement.checked = data.autoLearn;
 
-	for (let i = 0; i < gameData.skippedSkills.length; i++) {
-		document.getElementById("row " + gameData.skippedSkills[i]).querySelector(".checkbox").checked = true;
+	for (let i = 0; i < data.skippedSkills.length; i++) {
+		document.getElementById("row " + data.skippedSkills[i]).querySelector(".checkbox").checked = true;
 	}
 
-	if (!gameData.darkMode) toggleLightDarkMode();
+	if (!data.darkMode && document.getElementById("body").classList.contains("dark")) toggleLightDarkMode();
+
+	return data;
 }
 
-function saveGameData() {
-	saveSkipSkillsAndDarkMode();
-	saveTownState();
-	localStorage.setItem("gameDataSave", JSON.stringify(gameData));
+// TODO: will be replaced by gameStateToSnapshot() when ready
+function getGameState(data) {
+	saveSkipSkillsAndDarkMode(data);
+	saveTownState(data);
+	return data;
 }
 
-function loadGameData() {
-	let gameDataSave = JSON.parse(localStorage.getItem("gameDataSave"));
+function saveStateToLocalStorage(gameState) {
+	try {
+		new Serializable(gameState).toJSON().toLocalStorage(STATE_SAVE_KEY)
+		// new Serializable(gameState).toJSON().toBase64().toLocalStorage(STATE_SAVE_KEY)
+		ifVerboseLoggingSay("Game data saved to local storage", gameState);
+	} catch (error) {
+		console.error(error);
+		console.error("Error saving game data to local storage");
+	}
+}
+
+function loadStateFromLocalStorage(state) {
+	let gameDataSave = Serializable.fromLocalStorage(STATE_SAVE_KEY).fromJSON().data;
 
 	if (gameDataSave !== null) {
+		ifVerboseLoggingSay("Town data before loading:", gameDataSave.townData);
 		let data = applyVersionMigrationsToData(gameDataSave);
 		if (data == null) {
 			console.error("Error loading game data");
 			return;
 		}
-
-		gameData = data;
-		loadSkipSkillsAndDarkMode();
+		
+		loadSkipSkillsAndDarkMode(data);
+		state = data;
 	}
 
-	loadTownState(gameData.townData);
-	gameData.rawTownIncome = calculateRawTownIncome();
-	assignMethods();
+	ifVerboseLoggingSay('town data before loading: ', state.townData);
+	loadTownState(state.townData);
+	ifVerboseLoggingSay('town data after loading: ', state.townData);
+	state.rawTownIncome = calculateRawTownIncome();
+	assignMethods(state);
+
+	return state;
 }
 
 function resetGameData() {
@@ -64,7 +105,7 @@ function importGameData() {
 	let importExportBox = document.getElementById("importExportBox");
 	let data = JSON.parse(window.atob(importExportBox.value));
 	gameData = data;
-	saveGameData();
+	saveStateToLocalStorage(gameData);
 	location.reload();
 }
 
@@ -85,7 +126,7 @@ function loadGameDataFromFile() {
 	reader.onload = function () {
 		let data = JSON.parse(window.atob(reader.result));
 		gameData = data;
-		saveGameData();
+		saveStateToLocalStorage(gameData);
 		location.reload();
 	};
 }
@@ -138,20 +179,18 @@ function createItemData(baseData) {
 	}
 }
 
-function assignMethods() {
-	Object.entries(gameData.taskData).forEach(([taskKey, task]) => {
+function assignMethods(data) {
+	// TODO: switch job/skill/item by type, not by income field or data array
+	Object.entries(data.taskData).forEach(([taskKey, task]) => {
 		if (task.baseData.income) {
-			task.baseData = jobBaseData[task.name];
-			gameData.taskData[taskKey] = Object.assign(new Job(jobBaseData[task.name]), task);
+			data.taskData[taskKey] = Object.assign(new Job(jobBaseData[task.name]), task, { baseData: jobBaseData[task.name] });
 		} else {
-			task.baseData = skillBaseData[task.name];
-			gameData.taskData[taskKey] = Object.assign(new Skill(skillBaseData[task.name]), task);
+			data.taskData[taskKey] = Object.assign(new Skill(skillBaseData[task.name]), task, { baseData: skillBaseData[task.name] });
 		}
 	})
 
-	Object.entries(gameData.itemData).forEach(([itemKey, item]) => {
-		item.baseData = itemBaseData[item.name];
-		gameData.itemData[itemKey] = Object.assign(new Item(itemBaseData[item.name]), item);
+	Object.entries(data.itemData).forEach(([itemKey, item]) => {
+		data.itemData[itemKey] = Object.assign(new Item(itemBaseData[item.name]), item, { baseData: itemBaseData[item.name] });
 	});
 
 	const REQUIREMENT_CLASS = {
@@ -161,8 +200,8 @@ function assignMethods() {
 		evil: EvilRequirement
 	}
 
-	for (let key in gameData.requirements) {
-		let requirement = gameData.requirements[key];
+	for (let key in data.requirements) {
+		let requirement = data.requirements[key];
 		requirement = Object.assign(
 			new REQUIREMENT_CLASS[requirement.type](
 				requirement.elements,
@@ -173,19 +212,21 @@ function assignMethods() {
 		let tempRequirement = tempData["requirements"][key];
 		requirement.elements = tempRequirement.elements;
 		requirement.requirements = tempRequirement.requirements;
-		gameData.requirements[key] = requirement;
+		data.requirements[key] = requirement;
 	}
 
-	gameData.currentJob = gameData.taskData[gameData.currentJob.name];
-	gameData.currentSkill = gameData.taskData[gameData.currentSkill.name];
-	gameData.currentProperty = gameData.itemData[gameData.currentProperty.name];
-	gameData.currentMisc = gameData.currentMisc.map(misc => gameData.itemData[misc.name]);
+	data.currentJob = data.taskData[data.currentJob.name];
+	data.currentSkill = data.taskData[data.currentSkill.name];
+	data.currentProperty = data.itemData[data.currentProperty.name];
+	data.currentMisc = data.currentMisc.map(misc => data.itemData[misc.name]);
+
+	return data;
 }
 //#endregion
 
 // TODO: implement saving, loading and integrity checks
 // currently unused
-function getGameStateSnapshot() {
+function gameStateToSnapshot() {
 	return {
 		taskData: getBasicTaskData(),
 		townData: getBasicTownData(),
@@ -271,7 +312,7 @@ function getBasicRequirementsData() {
 	return Object.assign(...requirements);
 }
 
-function createGameStateFromSnapshot(snapshot) {
+function snapshotToGameState(snapshot) {
 	let numberStates = {
 		coins: Number(snapshot.coins),
 		days: Number(snapshot.days),

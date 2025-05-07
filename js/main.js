@@ -18,7 +18,7 @@ let gameData = {
 	currentJob: null,
 	currentSkill: null,
 	currentProperty: null,
-	currentMisc: null,
+	currentMisc: [],
 
 	autoPromote: false,
 	autoLearn: false,
@@ -62,7 +62,17 @@ if (devModeFastProgress) {
 }
 
 function ifVerboseLoggingSay(messageParts /*...arguments*/) {
-	if (enableVerboseLogging) console.log(...arguments);
+	if (!enableVerboseLogging) return;
+	let args = [...arguments];
+	console.log({details: (() => {
+		let error = new Error();
+		return () => {
+			// using warn so I can easily filter these
+			console.warn(...args)
+			console.warn(error.stack);
+		};
+	})()})
+	console.log(...args);
 }
 
 // TODO: silly method, remove when refactored out of the code
@@ -941,21 +951,9 @@ document.addEventListener("DOMContentLoaded", () => {
 	createAllRows(skillCategories, "skillTable");
 	createAllRows(itemCategories, "itemTable");
 
-	// initialize game data
-	gameData.taskData = {};
-	Object.assign(gameData.taskData, createData(jobBaseData));
-	Object.assign(gameData.taskData, createData(skillBaseData));
-	gameData.itemData = {};
-	Object.assign(gameData.itemData, createData(itemBaseData));
+	gameData = initializeGameState(gameData);
 
-	gameData.currentJob = gameData.taskData["Beggar"];
-	gameData.currentSkill = gameData.taskData["Concentration"];
-	gameData.currentProperty = gameData.itemData["Homeless"];
-	gameData.currentMisc = [];
-
-	gameData.requirements = initializeRequirements(gameData);
-
-	loadGameData();
+	gameData = loadStateFromLocalStorage(gameData);
 	addTaskMultipliers(gameData.taskData);
 	initCustomEffects(gameData.taskData);
 	addItemMultipliers(gameData.itemData);
@@ -971,7 +969,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	// start game loops
 	update();
 	setInterval(update, 1000 / updateSpeed);
-	setInterval(saveGameData, 6000);
+	setInterval(() => saveStateToLocalStorage(getGameState(gameData)), 6000);
 	setInterval(setSkillWithLowestMaxXp, 1000);
 });
 //#endregion

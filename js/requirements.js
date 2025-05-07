@@ -143,5 +143,5 @@ function initializeRequirements(stateData) {
 	
 	tempData["requirements"] = Object.assign({}, requirements);
 	
-	return requirements;
+	return Object.assign(requirements, stateData.requirements);
 };

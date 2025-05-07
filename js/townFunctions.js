@@ -53,7 +53,7 @@ function calculateRawTownIncome() {
  *       and writes that saveObject into gameData.townData. This function is
  *       called right before gameData is saved to localStorage.
  */
-function saveTownState() {
+function saveTownState(data = gameData) {
 	ifVerboseLoggingSay("saving town state...");
 
 	for (let building in townBaseData) {
@@ -66,7 +66,7 @@ function saveTownState() {
 		};
 		if (saveObject !== undefined) {
 			ifVerboseLoggingSay("This is the save object we created: ", saveObject);
-			gameData.townData[saveObject.name] = saveObject;
+			data.townData[saveObject.name] = saveObject;
 		}
 	}
 }
