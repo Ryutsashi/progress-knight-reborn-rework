@@ -4,6 +4,8 @@
 
 -  Created the temporary `NOTES.md` file to keep track of current progress for the remaining parts of the saveLoad refactor
 -  Created `class Serializble` as syntactic sugar for the JSON and base64 conversion pipeline, and added it to index.html
+-  `saveGameData()` is now two different methods: `getFullGameState()` and `saveStateToLocalStorage()` and accepts state
+-  `loadGameData()` is now two different methods: `loadStateFromLocalStorage()` and returns state
 
 ## Existing methods
 
@@ -33,7 +35,7 @@
 
 ---
 
-- [ ] `saveGameData()`
+- [x] `saveGameData()`
 
 	> Ideally would be either a `saveToLocalStorage()` or `saveToFile()`, and be passed the data to be saved
 
@@ -41,7 +43,7 @@
 
 ---
 
-- [ ] `loadGameData()`
+- [ ] [in progress] `loadGameData()`
 
 	> Ideally would be either a `loadFromLocalStorage()` or `loadFromFile()` or `loadFromInput()`, and return data that would then be parsed as JSON or even `JSON.parse(atob())`
 

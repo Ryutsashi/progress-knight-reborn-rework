@@ -969,7 +969,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	// start game loops
 	update();
 	setInterval(update, 1000 / updateSpeed);
-	setInterval(() => saveStateToLocalStorage(getGameState(gameData)), 6000);
+	setInterval(() => saveStateToLocalStorage(getFullGameState(gameData)), 6000);
 	setInterval(setSkillWithLowestMaxXp, 1000);
 });
 //#endregion

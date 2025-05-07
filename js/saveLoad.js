@@ -51,7 +51,7 @@ function loadSkipSkillsAndDarkMode(data) {
 }
 
 // TODO: will be replaced by gameStateToSnapshot() when ready
-function getGameState(data) {
+function getFullGameState(data) {
 	saveSkipSkillsAndDarkMode(data);
 	saveTownState(data);
 	return data;
@@ -60,7 +60,6 @@ function getGameState(data) {
 function saveStateToLocalStorage(gameState) {
 	try {
 		new Serializable(gameState).toJSON().toLocalStorage(STATE_SAVE_KEY)
-		// new Serializable(gameState).toJSON().toBase64().toLocalStorage(STATE_SAVE_KEY)
 		ifVerboseLoggingSay("Game data saved to local storage", gameState);
 	} catch (error) {
 		console.error(error);
