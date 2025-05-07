@@ -18,4 +18,18 @@ class Serializable {
 	fromBase64() {
 		return new Serializable(window.atob(this.#data));
 	}
+	toLocalStorage(key) {
+		try {
+			localStorage.setItem(key, this.#data);
+		} catch (error) {
+			throw error;
+		}
+	}
+	static fromLocalStorage(key) {
+		try {
+			return new Serializable(localStorage.getItem(key));
+		} catch (error) {
+			throw error;
+		}
+	}
 }
