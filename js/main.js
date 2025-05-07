@@ -703,6 +703,14 @@ function rebirthReset() {
 	})
 }
 
+function isAlive() {
+	if (gameData.days < getLifespan()) {
+		return true;
+	}
+	die();
+	return false;
+}
+
 function die() {
 	gameData.days = getLifespan();
 	gameData.isDead = true;
@@ -717,14 +725,6 @@ function goBankrupt() {
 
 function getLifespan() {
 	return baseLifespan * gameData.taskData["Immortality"].getEffect() * gameData.taskData["Super immortality"].getEffect();
-}
-
-function isAlive() {
-	if (gameData.days < getLifespan()) {
-		return true;
-	}
-	die();
-	return false;
 }
 //#endregion
 
@@ -744,7 +744,7 @@ function updateUI() {
 }
 
 function update() {
-	if (gameData.isPaused) {
+	if (gameData.isPaused || !isAlive()) {
 		updateUI();
 		return;
 	}

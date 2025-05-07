@@ -102,6 +102,13 @@ function loadStateFromLocalStorage(state) {
 	return state;
 }
 
+function loadGameState(data) {
+	saveStateToLocalStorage(data);
+	initializeGameState(data);
+
+	showDeathText(!isAlive());
+}
+
 function resetGameData() {
 	//author: theSpuu
 	let result = confirm("Are you sure you want to erase all game progress? This cannot be undone.");
@@ -121,13 +128,13 @@ function importGameData() {
 		return;
 	}
 	data = new Serializable(data).fromBase64().fromJSON().data;
-	
-	saveStateToLocalStorage(data);
-	initializeGameState(data);
+
+	loadGameState(data);
 }
 
 function exportGameData() {
-	document.getElementById("importExportBox").value = window.btoa(JSON.stringify(gameData));
+	let data = new Serializable(getFullGameState(gameData)).toJSON().toBase64();
+	document.getElementById("importExportBox").value = data;
 }
 
 function loadGameDataFromFile() {
@@ -141,10 +148,7 @@ function loadGameDataFromFile() {
 	reader.readAsText(file);
 
 	reader.onload = function () {
-		let data = JSON.parse(window.atob(reader.result));
-		gameData = data;
-		saveStateToLocalStorage(gameData);
-		location.reload();
+		loadGameState(new Serializable(reader.result).fromBase64().fromJSON().data);
 	};
 }
 
