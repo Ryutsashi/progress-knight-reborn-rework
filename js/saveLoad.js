@@ -27,11 +27,9 @@ function bindGameStateMethods(data) {
 // TODO: this is still pretty bad, but at least now we can load without refreshing... I think
 function initializeGameState(stateData) {
 	
-	stateData = createInitialGameState(stateData);
-	stateData = loadStateFromLocalStorage(stateData);
-	bindGameStateMethods(stateData);
-
-	gameData = stateData;
+	gameData = createInitialGameState(stateData);
+	gameData = loadStateFromLocalStorage(gameData);
+	bindGameStateMethods(gameData);
 }
 
 // TODO: remove and update the data when interacting with the elements themselves rather than doing it here on game save
@@ -116,18 +114,16 @@ function resetGameData() {
 
 
 function importGameData() {
-	let importExportBox = document.getElementById("importExportBox");
-	let data = importExportBox.value;
+	let data = document.getElementById("importExportBox").value;
+
 	if (data === '') {
 		ifVerboseLoggingSay("No data found in import box");
 		return;
 	}
-	saveStateToLocalStorage(new Serializable(data).fromBase64().fromJSON().data);
-	// location.reload();
+	data = new Serializable(data).fromBase64().fromJSON().data;
 	
-	gameData = createInitialGameState(gameData);
-	gameData = loadStateFromLocalStorage(gameData);
-	bindGameStateMethods(gameData);
+	saveStateToLocalStorage(data);
+	initializeGameState(data);
 }
 
 function exportGameData() {

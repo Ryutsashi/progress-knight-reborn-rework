@@ -1,12 +1,13 @@
 let gameData = {
 	version: "0.4.1",
+
 	taskData: {},
 	itemData: {},
 	townData: {},
 
 	rawTownIncome: 0,
 	coins: 0,
-	days: 365 * 14,
+	days: yearsToDays(14),
 	evil: 0,
 	isDead: false,
 	isPaused: false,
