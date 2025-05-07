@@ -71,7 +71,6 @@ function loadStateFromLocalStorage(state) {
 	let gameDataSave = Serializable.fromLocalStorage(STATE_SAVE_KEY).fromJSON().data;
 
 	if (gameDataSave !== null) {
-		ifVerboseLoggingSay("Town data before loading:", gameDataSave.townData);
 		let data = applyVersionMigrationsToData(gameDataSave);
 		if (data == null) {
 			console.error("Error loading game data");
@@ -82,9 +81,7 @@ function loadStateFromLocalStorage(state) {
 		state = data;
 	}
 
-	ifVerboseLoggingSay('town data before loading: ', state.townData);
 	loadTownState(state.townData);
-	ifVerboseLoggingSay('town data after loading: ', state.townData);
 	state.rawTownIncome = calculateRawTownIncome();
 	assignMethods(state);
 
