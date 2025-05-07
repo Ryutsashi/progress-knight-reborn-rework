@@ -1,5 +1,7 @@
 # saveLoad.js refactor
 
+Progress: 3.5 / 9 (counting by finished functions)
+
 ## Progress log
 
 -  Created the temporary `NOTES.md` file to keep track of current progress for the remaining parts of the saveLoad refactor
@@ -53,7 +55,7 @@
 
 ---
 
-- [ ] `resetGameData()`
+- [x] [skipped - so simple it doesn't need a change currently] `resetGameData()`
 
 	Just clears `localStorage` and refreshes the page
 
