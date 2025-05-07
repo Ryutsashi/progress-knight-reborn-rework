@@ -3,6 +3,7 @@
 ## Progress log
 
 -  Created the temporary `NOTES.md` file to keep track of current progress for the remaining parts of the saveLoad refactor
+-  Created `class Serializble` as syntactic sugar for the JSON and base64 conversion pipeline, and added it to index.html
 
 ## Existing methods
 
