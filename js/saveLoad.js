@@ -47,7 +47,7 @@ function loadGameData() {
 	}
 
 	loadTownState(gameData.townData);
-	gameData.rawTownIncome = updateRawTownIncome();
+	gameData.rawTownIncome = calculateRawTownIncome();
 	assignMethods();
 }
 
@@ -319,7 +319,7 @@ function createGameStateFromSnapshot(snapshot) {
 	return Object.assign(
 		{
 			version: snapshot.version,
-			rawTownIncome: updateRawTownIncome()
+			rawTownIncome: calculateRawTownIncome()
 		},
 		numberStates,
 		boolStates,

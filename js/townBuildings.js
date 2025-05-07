@@ -76,7 +76,7 @@ let townBaseData = {
 			this.count++;
 
 			//global function, lives in townFunctions.js
-			gameData.rawTownIncome = updateRawTownIncome();
+			gameData.rawTownIncome = calculateRawTownIncome();
 
 			updateTooltip(eventObject);
 		},
@@ -108,7 +108,7 @@ let townBaseData = {
 			this.count++;
 
 			//global function, lives in townFunctions.js
-			gameData.rawTownIncome = updateRawTownIncome();
+			gameData.rawTownIncome = calculateRawTownIncome();
 			updateTooltip(eventObject);
 		},
 

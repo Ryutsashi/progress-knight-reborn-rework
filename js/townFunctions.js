@@ -7,7 +7,7 @@
 // How: iterate through town building container. If 'income' is a property, multiply
 //  the income * count and add it to the total income variable. Return the total income
 //  variable.
-function updateRawTownIncome() {
+function calculateRawTownIncome() {
 	let totalIncome = 0;
 	for (let building in townBaseData) {
 		//building represents the key, so we use it to get a reference to the actual object
