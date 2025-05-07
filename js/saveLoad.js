@@ -1,6 +1,6 @@
 const STATE_SAVE_KEY = "gameDataSave";
 
-function initializeGameState(data) {
+function createInitialGameState(data) {
 	
 	data.taskData = {};
 	Object.assign(data.taskData, createData(jobBaseData));
@@ -14,8 +14,24 @@ function initializeGameState(data) {
 	data.currentMisc = [];
 	
 	data.requirements = initializeRequirements(data);
-
+	
 	return data;
+}
+
+function bindGameStateMethods(data) {
+	addTaskMultipliers(data.taskData);
+	initCustomEffects(data.taskData);
+	addItemMultipliers(data.itemData);
+}
+
+// TODO: this is still pretty bad, but at least now we can load without refreshing... I think
+function initializeGameState(stateData) {
+	
+	stateData = createInitialGameState(stateData);
+	stateData = loadStateFromLocalStorage(stateData);
+	bindGameStateMethods(stateData);
+
+	gameData = stateData;
 }
 
 // TODO: remove and update the data when interacting with the elements themselves rather than doing it here on game save
@@ -97,12 +113,21 @@ function resetGameData() {
 	}
 }
 
+
+
 function importGameData() {
 	let importExportBox = document.getElementById("importExportBox");
-	let data = JSON.parse(window.atob(importExportBox.value));
-	gameData = data;
-	saveStateToLocalStorage(gameData);
-	location.reload();
+	let data = importExportBox.value;
+	if (data === '') {
+		ifVerboseLoggingSay("No data found in import box");
+		return;
+	}
+	saveStateToLocalStorage(new Serializable(data).fromBase64().fromJSON().data);
+	// location.reload();
+	
+	gameData = createInitialGameState(gameData);
+	gameData = loadStateFromLocalStorage(gameData);
+	bindGameStateMethods(gameData);
 }
 
 function exportGameData() {

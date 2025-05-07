@@ -945,19 +945,14 @@ function addItemMultipliers(data = gameData.itemData) {
 	Object.values(data).forEach(item => item.expenseMultipliers = [getBoundTaskEffect("Bargaining"), getBoundTaskEffect("Intimidation")]);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function createUI() {
 	// create UI
 	createAllRows(jobCategories, "jobTable");
 	createAllRows(skillCategories, "skillTable");
 	createAllRows(itemCategories, "itemTable");
+}
 
-	gameData = initializeGameState(gameData);
-
-	gameData = loadStateFromLocalStorage(gameData);
-	addTaskMultipliers(gameData.taskData);
-	initCustomEffects(gameData.taskData);
-	addItemMultipliers(gameData.itemData);
-
+function initializeUI() {
 	// this only handles tooltip (mouseEnter) and purchase (click) methods for town buildings
 	registerEventListeners();
 
@@ -965,6 +960,13 @@ document.addEventListener("DOMContentLoaded", () => {
 	switchSelectedTab(jobTabButton, "jobs");
 	showDeathText(gameData.isDead);
 	autoFormatCoins();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+
+	createUI();
+	initializeGameState(gameData);
+	initializeUI();
 
 	// start game loops
 	update();
