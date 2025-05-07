@@ -7,7 +7,7 @@
 
 ## Existing methods
 
-- [ ] `saveSkipSkillsAndDarkMode()`
+- [x] [skipped for now] `saveSkipSkillsAndDarkMode()`
 
 	> Ideally:
 	> 1. would read from data,
@@ -15,18 +15,15 @@
 	> 3. or would be a UI update method
 
 	Sets `gameData[prop] = value` directly
-
+	
   - `autoPromote = ` checkbox value
-
   - `autoLearn = ` checkbox value
-
   - `skippedSkills.push()` checkbox values
-
   - `darkMode` if body has .dark
 
 ---
 
-- [ ] `loadSkipSkillsAndDarkMode()`
+- [x] [skipped for now] `loadSkipSkillsAndDarkMode()`
 
 	> Ideally would be a UI update method
 

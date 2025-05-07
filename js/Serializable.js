@@ -6,6 +6,9 @@ class Serializable {
 	get data() {
 		return this.#data;
 	}
+	get deepClone() {
+		return new Serializable(structuredClone(this.#data));
+	}
 	toJSON() {
 		return new Serializable(JSON.stringify(this.#data));
 	}
@@ -27,9 +30,12 @@ class Serializable {
 	}
 	static fromLocalStorage(key) {
 		try {
-			return new Serializable(localStorage.getItem(key));
+			let data = localStorage.getItem(key);
+			if (data === null) throw new Error("No data found in local storage");
+			return new Serializable(data);
 		} catch (error) {
-			throw error;
+			console.warn(error);
+			return new Serializable(null);
 		}
 	}
 }
