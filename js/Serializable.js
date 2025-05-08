@@ -1,4 +1,5 @@
 class Serializable {
+	static #anchorElement = document.createElement("a");
 	#data = null;
 	constructor(data) {
 		this.#data = data;
@@ -6,8 +7,8 @@ class Serializable {
 	get data() {
 		return this.#data;
 	}
-	get deepClone() {
-		return new Serializable(structuredClone(this.#data));
+	createDeepClone(options) {
+		return new Serializable(structuredClone(this.#data, options));
 	}
 	toJSON() {
 		return new Serializable(JSON.stringify(this.#data));
@@ -37,5 +38,17 @@ class Serializable {
 			console.warn(error);
 			return new Serializable(null);
 		}
+	}
+	toTextBlob(options = {type: "text/plain"}) {
+		return new Blob([this.#data], options);
+	}
+	toJSONBlob(options = {type: "application/json"}) {
+		return new Blob([this.#data], options);
+	}
+	static downloadAsFile(data, fileName) {
+		Serializable.#anchorElement.download = fileName;
+		Serializable.#anchorElement.href = URL.createObjectURL(data);
+		Serializable.#anchorElement.click();
+		URL.revokeObjectURL(Serializable.#anchorElement.href);
 	}
 }
