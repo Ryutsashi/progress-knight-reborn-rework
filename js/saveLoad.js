@@ -133,8 +133,8 @@ function importGameData() {
 }
 
 function exportGameData() {
-	let data = new Serializable(getFullGameState(gameData)).toJSON().toBase64();
-	document.getElementById("importExportBox").value = data;
+	let data = new Serializable(getFullGameState(gameData));
+	document.getElementById("importExportBox").value = data.toJSON().toBase64().data;
 }
 
 function loadGameDataFromFile() {
@@ -152,20 +152,15 @@ function loadGameDataFromFile() {
 	};
 }
 
-function downloadGameData() {
-	let filename = "progressKnightReborn.sav";
-	let data = window.btoa(JSON.stringify(gameData));
-	let file = new Blob([data], { type: "text/plain" });
+function downloadGameData(filename = 'progressKnightReborn.sav') {
+	let data = new Serializable(getFullGameState(gameData)).toJSON().toBase64();
+	let file = data.toTextBlob();
 
 	if (window.navigator.msSaveOrOpenBlob)
 		// IE10+
 		window.navigator.msSaveOrOpenBlob(file, filename);
 	else {
-		let saveFile = document.createElement("a");
-		saveFile.download = filename;
-		saveFile.href = URL.createObjectURL(file);
-		saveFile.click();
-		URL.revokeObjectURL(saveFile.href);
+		Serializable.downloadAsFile(file, filename);
 	}
 }
 
