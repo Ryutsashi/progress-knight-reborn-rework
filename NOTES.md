@@ -8,6 +8,10 @@ Progress: 3.5 / 9 (counting by finished functions)
 -  Created `class Serializble` as syntactic sugar for the JSON and base64 conversion pipeline, and added it to index.html
 -  `saveGameData()` is now two different methods: `getFullGameState()` and `saveStateToLocalStorage()` and accepts state
 -  `loadGameData()` is now two different methods: `loadStateFromLocalStorage()` and returns state
+-  renamed `initializeGameState()` to `createInitialGameState()` and decided to split some of the initialization code into separate functions:
+   -  `bindGameStateMethods()` and `initializeGameState()` for state data
+   -  `createUI()` and `initializeUI()` for UI
+-  import and load from file now don't refresh the page, `loadGameState()` now calls relevant methods and reevaluates death state
 
 ## Existing methods
 
@@ -45,7 +49,7 @@ Progress: 3.5 / 9 (counting by finished functions)
 
 ---
 
-- [ ] [in progress] `loadGameData()`
+- [x] `loadGameData()`
 
 	> Ideally would be either a `loadFromLocalStorage()` or `loadFromFile()` or `loadFromInput()`, and return data that would then be parsed as JSON or even `JSON.parse(atob())`
 
@@ -61,7 +65,7 @@ Progress: 3.5 / 9 (counting by finished functions)
 
 ---
 
-- [ ] `importGameData()`
+- [x] `importGameData()`
 
 	> Ideally, this would only fetch the data from the input box and pass it on to be parsed
 
@@ -71,7 +75,7 @@ Progress: 3.5 / 9 (counting by finished functions)
 
 ---
 
-- [ ] `exportGameData()`
+- [x] `exportGameData()`
 
 	> Ideally, this would take in the already serialized string data as a parameter and put it in the input box
 
@@ -79,7 +83,7 @@ Progress: 3.5 / 9 (counting by finished functions)
 
 ---
 
-- [ ] `loadGameDataFromFile()`
+- [x] `loadGameDataFromFile()`
 
 	> Ideally, this would only load the file and pass it on to be parsed
 
@@ -89,11 +93,9 @@ Progress: 3.5 / 9 (counting by finished functions)
 
 ---
 
-- [ ] `downloadGameData()`
+- [x] `downloadGameData()`
 
-	> 
-
-	Specifies `filename`, seriealizes the gameData directly to base 64 through `btoa(JSON.stringify())` and creates a new file `Blob`
+	Specifies `filename`, seriealizes the gameData directly to base64 through `btoa(JSON.stringify())` and creates a new file `Blob`
 
 	Creates a new `<a>` element, sets its download to `filename`, its `href` to the `createObjectURL(file)` and calls `click()` on it, then revokes the URL of the `Blob`
 
